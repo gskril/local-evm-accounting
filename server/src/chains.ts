@@ -1,6 +1,8 @@
-import type { Chain } from 'shared'
+import type { Insertable } from 'kysely'
 
-export const defaultChains: Chain[] = [
+import type { Tables } from './db'
+
+export const defaultChains: Insertable<Tables['chains']>[] = [
   {
     id: 8453,
     name: 'Base',

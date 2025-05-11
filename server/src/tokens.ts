@@ -1,3 +1,5 @@
-import type { Token } from 'shared'
+import type { Insertable } from 'kysely'
 
-export const defaultTokens: Token[] = []
+import type { Tables } from './db'
+
+export const defaultTokens: Insertable<Tables['tokens']>[] = []
