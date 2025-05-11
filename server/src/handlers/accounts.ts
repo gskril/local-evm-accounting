@@ -1,7 +1,6 @@
 import type { Context } from 'hono'
-import type { BlankEnv, TypedResponse } from 'hono/types'
+import type { BlankEnv } from 'hono/types'
 import { isAddress } from 'viem'
-// import { type Account, accountSchema } from 'shared'
 import { z } from 'zod'
 
 import { db } from '../db'

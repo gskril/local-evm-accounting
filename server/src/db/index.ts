@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3'
+import Database from 'bun:sqlite'
 import {
   CamelCasePlugin,
   type GeneratedAlways,
@@ -32,7 +32,7 @@ interface BalanceRow {
   token: TokenRow['address']
   chain: ChainRow['id']
   owner: AccountRow['address']
-  balance: bigint
+  balance: number
   usdValue: number
 }
 
@@ -44,6 +44,11 @@ export type Tables = {
 }
 
 export const db = new Kysely<Tables>({
-  dialect: new SqliteDialect({ database: new Database('../db.sqlite') }),
+  dialect: new SqliteDialect({
+    // @ts-expect-error Kysely is not designed to work with Bun:sqlite but it still works 🤷‍♂️
+    database: new Database(
+      process.env.DATABASE_URL?.replace('sqlite://', '') ?? './db.sqlite'
+    ),
+  }),
   plugins: [new CamelCasePlugin()],
 })
