@@ -10,7 +10,7 @@
     "build:client": "cd client && bun run build",
     "build:shared": "cd shared && bun run build",
     "build:server": "cd server && bun run build",
-    "build": "bun run build:shared && bun run build:client",
+    "build": "bun run build:shared && bun run build:client && bun run build:server",
     "postinstall": "bun run build:shared && bun run build:server"
   },
   "workspaces": [

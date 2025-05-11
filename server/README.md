@@ -1,11 +1,23 @@
-To install dependencies:
-```sh
-bun install
-```
+# Server
 
-To run:
-```sh
-bun run dev
-```
+Backend and API for the local-first EVM portfolio tracker.
 
-open http://localhost:3000
+## Endpoints:
+
+### Accounts
+
+- [ ] `GET /accounts`
+- [ ] `GET /accounts/:address`
+- [ ] `POST /accounts`
+
+### Chains
+
+- [ ] `GET /chains`
+- [ ] `GET /chains/:id`
+- [ ] `POST /chains`
+
+### Tokens
+
+- [ ] `GET /tokens`
+- [ ] `GET /tokens/:address`
+- [ ] `POST /tokens`
