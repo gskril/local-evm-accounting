@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
+import { hc } from 'hono/client'
 import { cors } from 'hono/cors'
-import type { ApiResponse } from 'shared/dist'
 
 const app = new Hono()
 
@@ -10,15 +10,9 @@ const routes = app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
 
-.get('/hello', async (c) => {
+// Export the client with types during compilation for better performance
+const client = hc<typeof routes>('')
+export const hcWithType = (...args: Parameters<typeof hc>): typeof client =>
+  hc<typeof routes>(...args)
 
-  const data: ApiResponse = {
-    message: "Hello BHVR!",
-    success: true
-  }
-
-  return c.json(data, { status: 200 })
-})
-
-export type AppType = typeof routes
 export default app

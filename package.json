@@ -1,15 +1,7 @@
 {
   "name": "local-eth-accounting",
-  "version": "0.1.1",
-  "description": "A monorepo template built with Bun, Hono, Vite, and React",
-  "author": "Steve Simkins",
+  "version": "0.0.1",
   "license": "MIT",
-  "homepage": "https://github.com/stevedylandev/bhvr",
-  "workspaces": [
-    "./server",
-    "./client",
-    "./shared"
-  ],
   "scripts": {
     "dev:client": "cd client && bun run dev",
     "dev:server": "cd server && bun run dev",
@@ -21,21 +13,18 @@
     "build": "bun run build:shared && bun run build:client",
     "postinstall": "bun run build:shared && bun run build:server"
   },
-  "keywords": [
-    "bun",
-    "hono",
-    "react",
-    "vite",
-    "monorepo"
+  "workspaces": [
+    "./server",
+    "./client",
+    "./shared"
   ],
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "bun-types": "latest",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "hono": "^4.7.9"
+    "typescript": "^5.8.3"
   }
 }
