@@ -1,16 +1,10 @@
-// import { hcWithType } from 'server'
-import { Button } from '@/components/ui/button'
-
-// const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
-
-// const client = hcWithType(SERVER_URL)
+import { useAccounts } from './hooks/useHono'
 
 function App() {
-  return (
-    <div>
-      <Button>Click me</Button>
-    </div>
-  )
+  const res = useAccounts()
+  console.log(res)
+
+  return <div>Hello World</div>
 }
 
 export default App
