@@ -8,7 +8,9 @@ import { cors } from 'hono/cors'
 import { addAccount, getAccount, getAccounts } from './handlers/accounts'
 import { fetchBalances } from './handlers/balances'
 import { addChain } from './handlers/chains'
+import { setupDefaultChainsAndTokens } from './handlers/setup'
 import { addToken } from './handlers/tokens'
+import { erc20Queue } from './queues/workers/erc20'
 import { ethQueue } from './queues/workers/eth'
 
 export const app = new Hono()
@@ -22,13 +24,14 @@ export const routes = app
   .post('/balances', (c) => fetchBalances(c))
   .post('/chains', (c) => addChain(c))
   .post('/tokens', (c) => addToken(c))
+  .post('/setup', (c) => setupDefaultChainsAndTokens(c))
 
 // BullMQ Dashboard
 const serverAdapter = new HonoAdapter(serveStatic)
 const basePath = '/dashboard'
 
 createBullBoard({
-  queues: [new BullMQAdapter(ethQueue)],
+  queues: [new BullMQAdapter(ethQueue), new BullMQAdapter(erc20Queue)],
   serverAdapter,
 })
 

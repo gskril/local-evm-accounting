@@ -3,6 +3,9 @@ import { type Chain, createPublicClient, http } from 'viem'
 
 import { type Tables, db } from './db'
 
+// Can only get the value of tokens if CheckTheChain or 1inch Spot Price Aggregator is available on the chain
+// https://github.com/NaniDAO/ctc Ethereum, Optimism, Base, Arbitrum and Polygon.
+// https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction
 export const defaultChains: Insertable<Tables['chains']>[] = [
   {
     id: 1,
@@ -13,6 +16,21 @@ export const defaultChains: Insertable<Tables['chains']>[] = [
     id: 8453,
     name: 'Base',
     rpcUrl: 'https://base-rpc.publicnode.com',
+  },
+  {
+    id: 10,
+    name: 'OP Mainnet',
+    rpcUrl: 'https://optimism-rpc.publicnode.com',
+  },
+  {
+    id: 42161,
+    name: 'Arbitrum',
+    rpcUrl: 'https://arbitrum-one-rpc.publicnode.com',
+  },
+  {
+    id: 137,
+    name: 'Polygon',
+    rpcUrl: 'https://polygon-bor-rpc.publicnode.com',
   },
 ]
 
