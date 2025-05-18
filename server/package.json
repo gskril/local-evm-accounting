@@ -5,7 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "bun run --hot src/index.ts",
+    "dev": "concurrently \"bun run --hot src/index.ts\" \"tsc --watch\"",
     "migrate": "bun run ./src/db/migrator.ts"
   },
   "exports": {

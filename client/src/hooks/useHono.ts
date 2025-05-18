@@ -10,13 +10,19 @@ export const honoClient = hcWithType(SERVER_URL)
 export function useAccounts() {
   return useQuery({
     queryKey: ['accounts'],
-    queryFn: () => honoClient.accounts.$get(),
+    queryFn: async () => {
+      const res = await honoClient.accounts.$get({})
+      return res.json()
+    },
   })
 }
 
 export function useAccount(address: Hex | undefined) {
   return useQuery({
     queryKey: ['account', address],
-    queryFn: () => honoClient.accounts.$get({ query: { address } }),
+    queryFn: async () => {
+      const res = await honoClient.accounts.$get({ query: { address } })
+      return res.json()
+    },
   })
 }
