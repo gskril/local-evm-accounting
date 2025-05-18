@@ -5,18 +5,15 @@
   "scripts": {
     "dev:client": "cd client && bun run dev",
     "dev:server": "cd server && bun run dev",
-    "dev:shared": "cd shared && bun run dev",
-    "dev": "concurrently \"bun run dev:shared\" \"bun run dev:server\" \"bun run dev:client\"",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\"",
     "build:client": "cd client && bun run build",
-    "build:shared": "cd shared && bun run build",
     "build:server": "cd server && bun run build",
-    "build": "bun run build:shared && bun run build:client && bun run build:server",
-    "postinstall": "bun run build:shared && bun run build:server"
+    "build": "bun run build:client && bun run build:server",
+    "postinstall": "bun run build:server"
   },
   "workspaces": [
     "./server",
-    "./client",
-    "./shared"
+    "./client"
   ],
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",

@@ -29,11 +29,10 @@ bun install
 ### Development
 
 ```bash
-# Run shared types in watch mode, server, and client all at once
+# Run everything
 bun run dev
 
 # Or run individual parts
-bun run dev:shared
 bun run dev:server
 bun run dev:client
 ```
@@ -45,7 +44,6 @@ bun run dev:client
 bun run build
 
 # Or build individual parts
-bun run build:shared
 bun run build:server
 bun run build:client
 ```
