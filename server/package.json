@@ -8,6 +8,12 @@
     "dev": "bun run --hot src/index.ts",
     "migrate": "bun run ./src/db/migrator.ts"
   },
+  "exports": {
+    "./hc": {
+      "default": "./dist/hc.js",
+      "types": "./dist/hc.d.ts"
+    }
+  },
   "dependencies": {
     "hono": "^4.7.9",
     "kysely": "^0.28.2",

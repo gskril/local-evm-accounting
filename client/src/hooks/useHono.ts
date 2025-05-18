@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { hcWithType } from 'server'
+import { hcWithType } from 'server/hc'
 
 import { Hex } from '@/lib/types'
 
