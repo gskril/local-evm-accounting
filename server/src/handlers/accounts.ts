@@ -6,24 +6,8 @@ import { z } from 'zod'
 import { db } from '../db'
 
 export async function getAccounts(c: Context) {
-  const accounts = await db.selectFrom('accounts').selectAll().execute()
-
-  const chains = await db
-    .selectFrom('chains')
-    .selectAll()
-    .where(
-      'id',
-      'in',
-      accounts.flatMap((account) => account.chainIds)
-    )
-    .execute()
-
-  return c.json(
-    accounts.map((account) => ({
-      ...account,
-      chains: chains.filter((chain) => account.chainIds.includes(chain.id)),
-    }))
-  )
+  const accounts = await getFilteredAccounts()
+  return c.json(accounts)
 }
 
 export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
@@ -72,5 +56,28 @@ export async function addAccount(c: Context) {
 
   const account = safeParse.data
   await db.insertInto('accounts').values(account).execute()
-  return c.json(account)
+
+  return c.json({ success: true })
+}
+
+export async function getFilteredAccounts() {
+  const accounts = await db.selectFrom('accounts').selectAll().execute()
+  console.log('accounts', accounts)
+
+  const chains = await db
+    .selectFrom('chains')
+    .selectAll()
+    .where(
+      'id',
+      'in',
+      accounts.flatMap((account) => account.chainIds)
+    )
+    .execute()
+
+  const filteredAccounts = accounts.map((account) => ({
+    ...account,
+    chains: chains.filter((chain) => account.chainIds.includes(chain.id)),
+  }))
+
+  return filteredAccounts
 }

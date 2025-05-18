@@ -1,10 +1,5 @@
-import Database from 'bun:sqlite'
-import {
-  CamelCasePlugin,
-  type GeneratedAlways,
-  Kysely,
-  SqliteDialect,
-} from 'kysely'
+import { CamelCasePlugin, type GeneratedAlways, Kysely } from 'kysely'
+import { BunSqliteDialect } from 'kysely-bun-worker/normal'
 import type { Address } from 'viem'
 
 interface ChainRow {
@@ -44,11 +39,8 @@ export type Tables = {
 }
 
 export const db = new Kysely<Tables>({
-  dialect: new SqliteDialect({
-    // @ts-expect-error Kysely is not designed to work with Bun:sqlite but it still works 🤷‍♂️
-    database: new Database(
-      process.env.DATABASE_URL?.replace('sqlite://', '') ?? './db.sqlite'
-    ),
+  dialect: new BunSqliteDialect({
+    url: process.env.DATABASE_URL?.replace('sqlite://', '') ?? './db.sqlite',
   }),
   plugins: [new CamelCasePlugin()],
 })

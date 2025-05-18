@@ -10,11 +10,6 @@
 
     // Path resolution
     "baseUrl": "./",
-    "paths": {
-      "@server/*": ["./server/src/*"],
-      "@client/*": ["./client/src/*"],
-      "@shared/*": ["./shared/src/*"]
-    },
 
     // Module resolution
     "moduleResolution": "bundler",

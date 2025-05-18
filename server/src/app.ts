@@ -6,6 +6,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
 import { addAccount, getAccount, getAccounts } from './handlers/accounts'
+import { fetchBalances } from './handlers/balances'
 import { ethQueue } from './queues/workers/eth'
 
 export const app = new Hono()
@@ -16,6 +17,7 @@ export const routes = app
   .get('/accounts', (c) => getAccounts(c))
   .get('/accounts/:address', (c) => getAccount(c))
   .post('/accounts', (c) => addAccount(c))
+  .post('/balances', (c) => fetchBalances(c))
 
 // BullMQ Dashboard
 const serverAdapter = new HonoAdapter(serveStatic)
