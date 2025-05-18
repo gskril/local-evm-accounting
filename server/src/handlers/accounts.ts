@@ -17,26 +17,37 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
     return c.json({ error: 'Invalid address' }, 400)
   }
 
-  const account = await db
+  const accounts = await db
     .selectFrom('accounts')
     .selectAll()
     .where('address', '=', address)
-    .executeTakeFirst()
+    .execute()
 
-  if (!account) {
+  if (accounts?.length == 0) {
     return c.json({ error: 'Account not found' }, 404)
   }
 
-  const balances = await db
-    .selectFrom('balances')
+  const chains = await db
+    .selectFrom('chains')
     .selectAll()
-    .where('owner', '=', address)
-    .where('chain', 'in', account.chainIds)
+    .where(
+      'id',
+      'in',
+      accounts.map((account) => account.chainId)
+    )
     .execute()
 
+  // const balances = await db
+  //   .selectFrom('balances')
+  //   .selectAll()
+  //   .where('owner', '=', address)
+  //   .where('chain', 'in', account.chainIds)
+  //   .execute()
+
   return c.json({
-    ...account,
-    balances,
+    ...accounts[0],
+    chains,
+    // balances,
   })
 }
 
@@ -54,30 +65,30 @@ export async function addAccount(c: Context) {
     return c.json({ error: safeParse.error.message }, 400)
   }
 
-  const account = safeParse.data
-  await db.insertInto('accounts').values(account).execute()
+  const { address, name, chainIds } = safeParse.data
+  await db
+    .insertInto('accounts')
+    .values(chainIds.map((chainId) => ({ address, name, chainId })))
+    .onConflict((oc) => oc.doNothing())
+    .execute()
 
   return c.json({ success: true })
 }
 
 export async function getFilteredAccounts() {
-  const accounts = await db.selectFrom('accounts').selectAll().execute()
-  console.log('accounts', accounts)
+  return await db.transaction().execute(async (trx) => {
+    const accounts = await trx.selectFrom('accounts').selectAll().execute()
 
-  const chains = await db
-    .selectFrom('chains')
-    .selectAll()
-    .where(
-      'id',
-      'in',
-      accounts.flatMap((account) => account.chainIds)
-    )
-    .execute()
+    const chainIds = accounts.map((acct) => acct.chainId)
+    const chains = await trx
+      .selectFrom('chains')
+      .selectAll()
+      .where('id', 'in', chainIds)
+      .execute()
 
-  const filteredAccounts = accounts.map((account) => ({
-    ...account,
-    chains: chains.filter((chain) => account.chainIds.includes(chain.id)),
-  }))
-
-  return filteredAccounts
+    return accounts.map((account) => ({
+      ...account,
+      chains,
+    }))
+  })
 }

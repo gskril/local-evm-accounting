@@ -1,15 +1,17 @@
 import type { Context } from 'hono'
 
 import { ethQueue } from '../queues/workers/eth'
-import { getAccounts, getFilteredAccounts } from './accounts'
+import { getFilteredAccounts } from './accounts'
 
 export async function fetchBalances(c: Context) {
   const accounts = await getFilteredAccounts()
   for (const account of accounts) {
-    await ethQueue.add(`${account.address}-${account.chainIds[0]}`, {
-      address: account.address,
-      chainId: account.chainIds[0]!,
-    })
+    for (const chain of account.chains) {
+      await ethQueue.add(`${account.address}-${chain.id}`, {
+        address: account.address,
+        chainId: chain.id,
+      })
+    }
   }
 
   return c.json({ success: true })

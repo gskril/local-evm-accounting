@@ -1,7 +1,7 @@
 import type { Insertable } from 'kysely'
 import { type Chain, createPublicClient, http } from 'viem'
 
-import type { Tables } from './db'
+import { type Tables, db } from './db'
 
 export const defaultChains: Insertable<Tables['chains']>[] = [
   {
@@ -16,15 +16,19 @@ export const defaultChains: Insertable<Tables['chains']>[] = [
   },
 ]
 
+// TODO: Optimize this so we don't read from Postgres every call
 export async function getViemClient(chainId: number) {
-  const chain = defaultChains.find((c) => c.id === chainId)
+  const chain = await db
+    .selectFrom('chains')
+    .select(['rpcUrl'])
+    .where('id', '=', chainId)
+    .executeTakeFirst()
 
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`)
   }
 
   return createPublicClient({
-    chain: chain as unknown as Chain,
-    transport: http(),
+    transport: http(chain.rpcUrl),
   })
 }
