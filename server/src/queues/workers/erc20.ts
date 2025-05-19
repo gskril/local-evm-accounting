@@ -39,7 +39,6 @@ async function processJob(job: Job<JobData>) {
   const data: Insertable<Tables['balances']> = {
     token: token.id,
     owner: job.data.owner,
-    chain: job.data.chainId,
     balance: Number(formatUnits(balance, token.decimals)),
     ethValue: 0,
   }
@@ -49,7 +48,7 @@ async function processJob(job: Job<JobData>) {
     .values(data)
     .onConflict((oc) =>
       oc
-        .columns(['token', 'chain', 'owner'])
+        .columns(['token', 'owner'])
         .doUpdateSet({ ...data, updatedAt: new Date().toISOString() })
     )
     .execute()

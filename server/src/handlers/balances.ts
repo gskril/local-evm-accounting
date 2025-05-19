@@ -36,9 +36,9 @@ export async function getBalances(c: Context) {
     // Get all balances and aggregate by token (address + chain)
     const balances = await trx
       .selectFrom('balances')
-      .select(['token', 'chain', trx.fn.sum('balance').as('balance')])
+      .select(['token', trx.fn.sum('balance').as('balance')])
       .where('balance', '>', 0)
-      .groupBy(['token', 'chain'])
+      .groupBy(['token'])
       .execute()
 
     const tokens = await trx

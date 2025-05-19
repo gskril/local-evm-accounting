@@ -15,9 +15,15 @@ export async function setupDefaultChains(c: Context) {
 }
 
 export async function setupDefaultTokens(c: Context) {
+  const chains = await db.selectFrom('chains').select('id').execute()
+
+  const tokensOnChains = defaultTokens.filter((t) =>
+    chains.some((c) => c.id === t.chain)
+  )
+
   await db
     .insertInto('tokens')
-    .values(defaultTokens)
+    .values(tokensOnChains)
     .onConflict((oc) => oc.doNothing())
     .execute()
 
