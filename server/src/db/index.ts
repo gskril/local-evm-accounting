@@ -15,7 +15,6 @@ interface ChainRow {
 
 interface AccountRow {
   address: Address
-  chainId: ChainRow['id']
   name: string
   createdAt: GeneratedAlways<Date>
 }
@@ -30,11 +29,11 @@ interface TokenRow {
 }
 
 interface BalanceRow {
-  token: TokenRow['address']
+  token: number
   chain: ChainRow['id']
   owner: AccountRow['address']
   balance: number
-  usdValue: number
+  ethValue: number
   updatedAt: ColumnType<Date, never, string | undefined>
 }
 

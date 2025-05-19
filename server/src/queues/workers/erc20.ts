@@ -20,7 +20,7 @@ async function processJob(job: Job<JobData>) {
 
   const token = await db
     .selectFrom('tokens')
-    .select(['decimals'])
+    .select(['id', 'decimals'])
     .where('address', '=', job.data.token)
     .where('chain', '=', job.data.chainId)
     .executeTakeFirst()
@@ -37,11 +37,11 @@ async function processJob(job: Job<JobData>) {
   })
 
   const data: Insertable<Tables['balances']> = {
-    token: job.data.token,
+    token: token.id,
     owner: job.data.owner,
     chain: job.data.chainId,
     balance: Number(formatUnits(balance, token.decimals)),
-    usdValue: 0,
+    ethValue: 0,
   }
 
   await db

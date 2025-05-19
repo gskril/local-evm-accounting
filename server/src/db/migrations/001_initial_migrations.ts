@@ -8,9 +8,6 @@ export const up = async (db: Kysely<any>) => {
     .addColumn('id', 'integer', (col) => col.primaryKey())
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('rpcUrl', 'text', (col) => col.notNull())
-    .addColumn('createdAt', 'timestamptz', (col) =>
-      col.notNull().defaultTo(sql`current_timestamp`)
-    )
     .execute()
 
   // ACCOUNTS
@@ -18,18 +15,10 @@ export const up = async (db: Kysely<any>) => {
     .createTable('accounts')
     .ifNotExists()
     .addColumn('address', 'text', (col) => col.primaryKey())
-    .addColumn('name', 'text', (col) => col.notNull())
-    .addColumn('chainId', 'integer', (col) => col.notNull())
+    .addColumn('name', 'text')
     .addColumn('createdAt', 'timestamptz', (col) =>
       col.notNull().defaultTo(sql`current_timestamp`)
     )
-    .addForeignKeyConstraint('accounts_chainId_fkey', ['chainId'], 'chains', [
-      'id',
-    ])
-    .addUniqueConstraint('accounts_address_chainId_unique', [
-      'address',
-      'chainId',
-    ])
     .execute()
 
   // TOKENS
@@ -54,7 +43,7 @@ export const up = async (db: Kysely<any>) => {
     .addColumn('chain', 'integer', (col) => col.notNull())
     .addColumn('owner', 'text', (col) => col.notNull())
     .addColumn('balance', 'integer', (col) => col.notNull())
-    .addColumn('usdValue', 'integer', (col) => col.notNull())
+    .addColumn('ethValue', 'integer', (col) => col.notNull())
     .addColumn('updatedAt', 'timestamptz', (col) =>
       col.notNull().defaultTo(sql`current_timestamp`)
     )

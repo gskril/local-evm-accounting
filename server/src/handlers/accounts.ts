@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { db } from '../db'
 
 export async function getAccounts(c: Context) {
-  const accounts = await getFilteredAccounts()
+  const accounts = await db.selectFrom('accounts').selectAll().execute()
   return c.json(accounts)
 }
 
@@ -17,25 +17,15 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
     return c.json({ error: 'Invalid address' }, 400)
   }
 
-  const accounts = await db
+  const account = await db
     .selectFrom('accounts')
     .selectAll()
     .where('address', '=', address)
-    .execute()
+    .executeTakeFirst()
 
-  if (accounts?.length == 0) {
+  if (!account) {
     return c.json({ error: 'Account not found' }, 404)
   }
-
-  const chains = await db
-    .selectFrom('chains')
-    .selectAll()
-    .where(
-      'id',
-      'in',
-      accounts.map((account) => account.chainId)
-    )
-    .execute()
 
   // const balances = await db
   //   .selectFrom('balances')
@@ -44,11 +34,7 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
   //   .where('chain', 'in', account.chainIds)
   //   .execute()
 
-  return c.json({
-    ...accounts[0],
-    chains,
-    // balances,
-  })
+  return c.json(account)
 }
 
 const addAccountSchema = z.object({
@@ -73,22 +59,4 @@ export async function addAccount(c: Context) {
     .execute()
 
   return c.json({ success: true })
-}
-
-export async function getFilteredAccounts() {
-  return await db.transaction().execute(async (trx) => {
-    const accounts = await trx.selectFrom('accounts').selectAll().execute()
-
-    const chainIds = accounts.map((acct) => acct.chainId)
-    const chains = await trx
-      .selectFrom('chains')
-      .selectAll()
-      .where('id', 'in', chainIds)
-      .execute()
-
-    return accounts.map((account) => ({
-      ...account,
-      chains,
-    }))
-  })
 }

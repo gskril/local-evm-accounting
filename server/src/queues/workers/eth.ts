@@ -1,7 +1,7 @@
 import type { Job } from 'bullmq'
 import type { Insertable } from 'kysely'
 import { type Tables, db } from 'server/src/db'
-import { type Address, formatEther } from 'viem'
+import { type Address, formatEther, zeroAddress } from 'viem'
 
 import { getViemClient } from '../../chains'
 import { createQueue, createWorker } from '../bullmq'
@@ -20,12 +20,23 @@ async function processJob(job: Job<JobData>) {
     address: job.data.address,
   })
 
+  const token = await db
+    .selectFrom('tokens')
+    .select('id')
+    .where('address', '=', zeroAddress)
+    .where('chain', '=', job.data.chainId)
+    .executeTakeFirst()
+
+  if (!token) {
+    throw new Error('Token does not exist')
+  }
+
   const data: Insertable<Tables['balances']> = {
-    token: '0x0000000000000000000000000000000000000000',
+    token: token.id,
     owner: job.data.address,
     chain: job.data.chainId,
     balance: Number(formatEther(balance)),
-    usdValue: 0,
+    ethValue: 0,
   }
 
   await db

@@ -4,7 +4,6 @@ import { zeroAddress } from 'viem'
 import { db } from '../db'
 import { erc20Queue } from '../queues/workers/erc20'
 import { ethQueue } from '../queues/workers/eth'
-import { getFilteredAccounts } from './accounts'
 
 export async function fetchBalances(c: Context) {
   const accounts = await db.selectFrom('accounts').selectAll().execute()
@@ -12,9 +11,6 @@ export async function fetchBalances(c: Context) {
 
   for (const account of accounts) {
     for (const token of tokens) {
-      // Only fetch balances for tokens on the same chain as the account
-      if (token.chain !== account.chainId) continue
-
       if (token.address === zeroAddress) {
         // Native ETH
         await ethQueue.add(`${account.address}-${token.chain}`, {
