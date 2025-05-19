@@ -1,9 +1,9 @@
 import type { Job } from 'bullmq'
 import type { Insertable } from 'kysely'
-import { type Tables, db } from 'server/src/db'
 import { type Address, formatEther, zeroAddress } from 'viem'
 
 import { getViemClient } from '../../chains'
+import { type Tables, db } from '../../db'
 import { createQueue, createWorker } from '../bullmq'
 
 type JobData = {

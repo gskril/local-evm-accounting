@@ -1,34 +1,13 @@
 import { createBullBoard } from '@bull-board/api'
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { HonoAdapter } from '@bull-board/hono'
-import { Hono } from 'hono'
 import { serveStatic } from 'hono/bun'
-import { cors } from 'hono/cors'
 
-import { addAccount, getAccount, getAccounts } from './handlers/accounts'
-import { fetchBalances, getBalances } from './handlers/balances'
-import { addChain, getChains } from './handlers/chains'
-import { setupDefaultChains, setupDefaultTokens } from './handlers/setup'
-import { addToken, getTokens } from './handlers/tokens'
+import { api } from './api'
 import { erc20Queue } from './queues/workers/erc20'
 import { ethQueue } from './queues/workers/eth'
 
-export const app = new Hono()
-app.use(cors())
-
-// API Routes
-export const routes = app
-  .get('/accounts', (c) => getAccounts(c))
-  .get('/accounts/:address', (c) => getAccount(c))
-  .get('/chains', (c) => getChains(c))
-  .get('/balances', (c) => getBalances(c))
-  .get('/tokens', (c) => getTokens(c))
-  .post('/accounts', (c) => addAccount(c))
-  .post('/balances', (c) => fetchBalances(c))
-  .post('/chains', (c) => addChain(c))
-  .post('/tokens', (c) => addToken(c))
-  .post('/setup/chains', (c) => setupDefaultChains(c))
-  .post('/setup/tokens', (c) => setupDefaultTokens(c))
+export const app = api
 
 // BullMQ Dashboard
 const serverAdapter = new HonoAdapter(serveStatic)
