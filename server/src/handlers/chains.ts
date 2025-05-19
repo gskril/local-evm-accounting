@@ -20,3 +20,8 @@ export async function addChain(c: Context) {
 
   return c.json({ success: true })
 }
+
+export async function getChains(c: Context) {
+  const chains = await db.selectFrom('chains').selectAll().execute()
+  return c.json(chains)
+}

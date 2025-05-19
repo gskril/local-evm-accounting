@@ -7,7 +7,7 @@ import { cors } from 'hono/cors'
 
 import { addAccount, getAccount, getAccounts } from './handlers/accounts'
 import { fetchBalances } from './handlers/balances'
-import { addChain } from './handlers/chains'
+import { addChain, getChains } from './handlers/chains'
 import { setupDefaultChainsAndTokens } from './handlers/setup'
 import { addToken } from './handlers/tokens'
 import { erc20Queue } from './queues/workers/erc20'
@@ -20,6 +20,7 @@ app.use(cors())
 export const routes = app
   .get('/accounts', (c) => getAccounts(c))
   .get('/accounts/:address', (c) => getAccount(c))
+  .get('/chains', (c) => getChains(c))
   .post('/accounts', (c) => addAccount(c))
   .post('/balances', (c) => fetchBalances(c))
   .post('/chains', (c) => addChain(c))

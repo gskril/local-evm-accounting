@@ -26,3 +26,13 @@ export function useAccount(address: Hex | undefined) {
     },
   })
 }
+
+export function useChains() {
+  return useQuery({
+    queryKey: ['chains'],
+    queryFn: async () => {
+      const res = await honoClient.chains.$get()
+      return res.json()
+    },
+  })
+}

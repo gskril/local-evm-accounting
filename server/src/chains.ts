@@ -1,5 +1,6 @@
 import type { Insertable } from 'kysely'
 import { type Chain, createPublicClient, http } from 'viem'
+import { mainnet } from 'viem/chains'
 
 import { type Tables, db } from './db'
 
@@ -47,6 +48,8 @@ export async function getViemClient(chainId: number) {
   }
 
   return createPublicClient({
+    // Viem doesn't technically need the chain info, but we'll provide it for mainnet to make ENS resolution easier
+    chain: chainId === 1 ? mainnet : undefined,
     transport: http(chain.rpcUrl),
   })
 }
