@@ -3,6 +3,7 @@ import {
   type ColumnType,
   type GeneratedAlways,
   Kysely,
+  sql,
 } from 'kysely'
 import { BunSqliteDialect } from 'kysely-bun-worker/normal'
 import type { Address } from 'viem'
@@ -30,7 +31,6 @@ interface TokenRow {
 
 interface BalanceRow {
   token: number
-  chain: ChainRow['id']
   owner: AccountRow['address']
   balance: number
   ethValue: number
@@ -47,6 +47,9 @@ export type Tables = {
 export const db = new Kysely<Tables>({
   dialect: new BunSqliteDialect({
     url: process.env.DATABASE_URL?.replace('sqlite://', '') ?? './db.sqlite',
+    onCreateConnection: (conn) => {
+      conn.executeQuery(sql`PRAGMA foreign_keys = ON;`.compile(db))
+    },
   }),
   plugins: [new CamelCasePlugin()],
 })
