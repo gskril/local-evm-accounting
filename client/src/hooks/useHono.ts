@@ -26,3 +26,48 @@ export function useAccount(address: Hex | undefined) {
     },
   })
 }
+
+export function useChains() {
+  return useQuery({
+    queryKey: ['chains'],
+    queryFn: async () => {
+      const res = await honoClient.chains.$get()
+      return res.json()
+    },
+  })
+}
+
+export function useTokens() {
+  return useQuery({
+    queryKey: ['tokens'],
+    queryFn: async () => {
+      const res = await honoClient.tokens.$get()
+      return res.json()
+    },
+  })
+}
+
+export function useBalances() {
+  return useQuery({
+    queryKey: ['balances'],
+    refetchInterval: 1000,
+    queryFn: async () => {
+      const res = await honoClient.balances.$get()
+      const json = await res.json()
+      // TODO: figure out why honoClient isn't inferring the type
+      return json as unknown as {
+        token:
+          | {
+              symbol: string
+              id: number
+              address: `0x${string}`
+              chain: number
+              name: string
+              decimals: number
+            }
+          | undefined
+        balance: string | number | bigint
+      }[]
+    },
+  })
+}

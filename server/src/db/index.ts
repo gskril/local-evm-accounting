@@ -1,4 +1,10 @@
-import { CamelCasePlugin, type GeneratedAlways, Kysely } from 'kysely'
+import {
+  CamelCasePlugin,
+  type ColumnType,
+  type GeneratedAlways,
+  Kysely,
+  sql,
+} from 'kysely'
 import { BunSqliteDialect } from 'kysely-bun-worker/normal'
 import type { Address } from 'viem'
 
@@ -11,11 +17,11 @@ interface ChainRow {
 interface AccountRow {
   address: Address
   name: string
-  chainIds: ChainRow['id'][]
   createdAt: GeneratedAlways<Date>
 }
 
 interface TokenRow {
+  id: GeneratedAlways<number>
   address: Address
   chain: ChainRow['id']
   name: string
@@ -24,11 +30,11 @@ interface TokenRow {
 }
 
 interface BalanceRow {
-  token: TokenRow['address']
-  chain: ChainRow['id']
+  token: number
   owner: AccountRow['address']
   balance: number
-  usdValue: number
+  ethValue: number
+  updatedAt: ColumnType<Date, never, string | undefined>
 }
 
 export type Tables = {
@@ -41,6 +47,9 @@ export type Tables = {
 export const db = new Kysely<Tables>({
   dialect: new BunSqliteDialect({
     url: process.env.DATABASE_URL?.replace('sqlite://', '') ?? './db.sqlite',
+    onCreateConnection: (conn) => {
+      conn.executeQuery(sql`PRAGMA foreign_keys = ON;`.compile(db))
+    },
   }),
   plugins: [new CamelCasePlugin()],
 })

@@ -1,12 +1,14 @@
 import type { Context } from 'hono'
 import type { BlankEnv } from 'hono/types'
-import { isAddress } from 'viem'
+import { type Address, isAddress } from 'viem'
 import { z } from 'zod'
 
+import { getViemClient } from '../chains'
 import { db } from '../db'
+import { truncateAddress } from '../utils'
 
 export async function getAccounts(c: Context) {
-  const accounts = await getFilteredAccounts()
+  const accounts = await db.selectFrom('accounts').selectAll().execute()
   return c.json(accounts)
 }
 
@@ -27,23 +29,19 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
     return c.json({ error: 'Account not found' }, 404)
   }
 
-  const balances = await db
-    .selectFrom('balances')
-    .selectAll()
-    .where('owner', '=', address)
-    .where('chain', 'in', account.chainIds)
-    .execute()
+  // const balances = await db
+  //   .selectFrom('balances')
+  //   .selectAll()
+  //   .where('owner', '=', address)
+  //   .where('chain', 'in', account.chainIds)
+  //   .execute()
 
-  return c.json({
-    ...account,
-    balances,
-  })
+  return c.json(account)
 }
 
 const addAccountSchema = z.object({
-  address: z.string().refine(isAddress, { message: 'Invalid address' }),
-  name: z.string(),
-  chainIds: z.array(z.number()),
+  address: z.string(),
+  name: z.string().optional(),
 })
 
 export async function addAccount(c: Context) {
@@ -51,33 +49,38 @@ export async function addAccount(c: Context) {
   const safeParse = addAccountSchema.safeParse(body)
 
   if (!safeParse.success) {
-    return c.json({ error: safeParse.error.message }, 400)
+    return c.json({ error: safeParse.error }, 400)
   }
 
-  const account = safeParse.data
-  await db.insertInto('accounts').values(account).execute()
+  let { address, name } = safeParse.data
 
-  return c.json({ success: true })
-}
+  if (!isAddress(address)) {
+    const client = await getViemClient(1)
+    const ensAddress = await client.getEnsAddress({ name: address })
 
-export async function getFilteredAccounts() {
-  const accounts = await db.selectFrom('accounts').selectAll().execute()
-  console.log('accounts', accounts)
+    if (ensAddress) {
+      if (!name) {
+        name = address
+      }
 
-  const chains = await db
-    .selectFrom('chains')
-    .selectAll()
-    .where(
-      'id',
-      'in',
-      accounts.flatMap((account) => account.chainIds)
-    )
+      address = ensAddress
+    } else {
+      return c.json({ error: 'Invalid address or ENS name' }, 400)
+    }
+  }
+
+  if (!name) {
+    name = truncateAddress(address as Address)
+  }
+
+  const data = { address: address as Address, name }
+  console.log(data)
+
+  await db
+    .insertInto('accounts')
+    .values(data)
+    .onConflict((oc) => oc.column('address').doUpdateSet(data))
     .execute()
 
-  const filteredAccounts = accounts.map((account) => ({
-    ...account,
-    chains: chains.filter((chain) => account.chainIds.includes(chain.id)),
-  }))
-
-  return filteredAccounts
+  return c.json({ success: true })
 }

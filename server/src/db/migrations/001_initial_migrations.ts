@@ -8,9 +8,6 @@ export const up = async (db: Kysely<any>) => {
     .addColumn('id', 'integer', (col) => col.primaryKey())
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('rpcUrl', 'text', (col) => col.notNull())
-    .addColumn('createdAt', 'timestamptz', (col) =>
-      col.notNull().defaultTo(sql`current_timestamp`)
-    )
     .execute()
 
   // ACCOUNTS
@@ -18,8 +15,7 @@ export const up = async (db: Kysely<any>) => {
     .createTable('accounts')
     .ifNotExists()
     .addColumn('address', 'text', (col) => col.primaryKey())
-    .addColumn('name', 'text', (col) => col.notNull())
-    .addColumn('chainIds', 'json', (col) => col.notNull())
+    .addColumn('name', 'text')
     .addColumn('createdAt', 'timestamptz', (col) =>
       col.notNull().defaultTo(sql`current_timestamp`)
     )
@@ -29,32 +25,33 @@ export const up = async (db: Kysely<any>) => {
   await db.schema
     .createTable('tokens')
     .ifNotExists()
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
     .addColumn('address', 'text', (col) => col.notNull())
-    .addColumn('chain', 'integer', (col) => col.notNull())
+    .addColumn('chain', 'integer', (col) =>
+      col.references('chains.id').onDelete('cascade').notNull()
+    )
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('symbol', 'text', (col) => col.notNull())
     .addColumn('decimals', 'integer', (col) => col.notNull())
-    .addPrimaryKeyConstraint('tokens_pkey', ['address', 'chain'])
-    .addForeignKeyConstraint('tokens_chain_fkey', ['chain'], 'chains', ['id'])
+    .addUniqueConstraint('tokens_address_chain_unique', ['address', 'chain'])
     .execute()
 
   // BALANCES
   await db.schema
     .createTable('balances')
     .ifNotExists()
-    .addColumn('token', 'text', (col) => col.notNull())
-    .addColumn('chain', 'integer', (col) => col.notNull())
-    .addColumn('owner', 'text', (col) => col.notNull())
+    .addColumn('token', 'integer', (col) =>
+      col.references('tokens.id').onDelete('cascade').notNull()
+    )
+    .addColumn('owner', 'text', (col) =>
+      col.references('accounts.address').onDelete('cascade').notNull()
+    )
     .addColumn('balance', 'integer', (col) => col.notNull())
-    .addColumn('usdValue', 'integer', (col) => col.notNull())
-    .addPrimaryKeyConstraint('balances_pkey', ['token', 'chain', 'owner'])
-    .addForeignKeyConstraint('balances_token_fkey', ['token'], 'tokens', [
-      'address',
-    ])
-    .addForeignKeyConstraint('balances_chain_fkey', ['chain'], 'chains', ['id'])
-    .addForeignKeyConstraint('balances_owner_fkey', ['owner'], 'accounts', [
-      'address',
-    ])
+    .addColumn('ethValue', 'integer', (col) => col.notNull())
+    .addColumn('updatedAt', 'timestamptz', (col) =>
+      col.notNull().defaultTo(sql`current_timestamp`)
+    )
+    .addPrimaryKeyConstraint('balances_pkey', ['token', 'owner'])
     .execute()
 }
 

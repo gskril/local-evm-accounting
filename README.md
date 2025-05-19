@@ -1,8 +1,11 @@
-# Local ETH Accounting
+> [!NOTE]  
+> This is a work in progress and not currently operational.
 
-A local-first portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints. The program explicity doesn't care about transaction history to reduce complexity and maximize privacy.
+# Local-First EVM Portfolio Tracker
 
-Uses [Check The Chain](https://github.com/NaniDAO/ctc) or [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset prices.
+A simple portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints. The program explicity doesn't care about transaction history to reduce complexity and maximize privacy.
+
+Uses [Check The Chain](https://github.com/NaniDAO/ctc) or [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values.
 
 For more complex portfolio tracking and tax preparation, use [Rotki](https://rotki.com/).
 
@@ -26,13 +29,12 @@ bun install
 ### Development
 
 ```bash
-# Run shared types in watch mode, server, and client all at once
+# Run everything
 bun run dev
 
 # Or run individual parts
-bun run dev:shared  # Watch and compile shared types
-bun run dev:server  # Run the Hono backend
-bun run dev:client  # Run the Vite dev server for React
+bun run dev:server
+bun run dev:client
 ```
 
 ### Building
@@ -42,6 +44,6 @@ bun run dev:client  # Run the Vite dev server for React
 bun run build
 
 # Or build individual parts
-bun run build:shared  # Build the shared types package
-bun run build:client  # Build the React frontend
+bun run build:server
+bun run build:client
 ```

@@ -1,10 +1,15 @@
-import { useAccounts } from './hooks/useHono'
+import { Route, Routes } from 'react-router-dom'
+
+import { Home } from './screens/Home'
 
 function App() {
-  const res = useAccounts()
-  console.log(res)
-
-  return <div>Hello World</div>
+  return (
+    <main>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </main>
+  )
 }
 
 export default App
