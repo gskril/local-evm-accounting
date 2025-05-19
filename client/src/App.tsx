@@ -1,18 +1,14 @@
-import { AccountCard } from './components/AccountCard'
-import { BalanceCard } from './components/BalanceCard'
-import { ChainCard } from './components/ChainCard'
-import { TokenCard } from './components/TokenCard'
+import { Route, Routes } from 'react-router-dom'
+
+import { Home } from './screens/Home'
 
 function App() {
   return (
-    <div className="flex min-h-svh w-full flex-col gap-4 bg-neutral-50 p-4">
-      <div className="grid w-full grid-cols-2 gap-4">
-        <ChainCard />
-        <AccountCard />
-        <BalanceCard />
-        <TokenCard />
-      </div>
-    </div>
+    <main>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </main>
   )
 }
 

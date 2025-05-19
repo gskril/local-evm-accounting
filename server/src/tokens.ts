@@ -44,13 +44,6 @@ export const defaultTokens: Insertable<Tables['tokens']>[] = [
     decimals: 18,
   },
   {
-    address: '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
-    chain: 1,
-    name: 'Shiba Inu',
-    symbol: 'SHIB',
-    decimals: 18,
-  },
-  {
     address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     chain: 1,
     name: 'DAI',
