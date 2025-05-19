@@ -33,7 +33,7 @@ export function ChainCard() {
       return
     }
 
-    const json = addChainSchema.parse(safeParse)
+    const json = safeParse.data
 
     try {
       await honoClient.chains.$post({ json })
@@ -46,9 +46,26 @@ export function ChainCard() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Chains</CardTitle>
+      <CardHeader className="flex items-center justify-between gap-2">
+        <CardTitle>
+          <span>Chains</span>
+        </CardTitle>
+        <Button
+          variant="secondary"
+          onClick={async () => {
+            try {
+              await honoClient.setup.chains.$post()
+              toast.success('Added default chains')
+              chains.refetch()
+            } catch {
+              toast.error('Error adding tokens')
+            }
+          }}
+        >
+          Add Default Chains
+        </Button>
       </CardHeader>
+
       <CardContent className="flex flex-col gap-2">
         {chains.data?.map((chain) => (
           <div key={chain.id}>
@@ -59,6 +76,7 @@ export function ChainCard() {
           </div>
         ))}
       </CardContent>
+
       <CardFooter>
         <form onSubmit={handleAddChain} className="flex w-full gap-2">
           <Input name="name" placeholder="Chain name" />

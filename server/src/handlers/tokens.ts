@@ -23,3 +23,19 @@ export async function addToken(c: Context) {
 
   return c.json({ success: true })
 }
+
+export async function getTokens(c: Context) {
+  const { tokens, chains } = await db.transaction().execute(async (trx) => {
+    const tokens = await trx.selectFrom('tokens').selectAll().execute()
+    const chains = await trx.selectFrom('chains').selectAll().execute()
+
+    return { tokens, chains }
+  })
+
+  return c.json(
+    tokens.map((token) => ({
+      ...token,
+      chain: chains.find((chain) => chain.id === token.chain),
+    }))
+  )
+}

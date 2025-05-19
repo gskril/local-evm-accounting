@@ -13,13 +13,14 @@ export function AccountCard() {
     const formData = new FormData(e.target as HTMLFormElement)
     const address = formData.get('address') as string
 
-    try {
-      await honoClient.accounts.$post({ json: { address } })
-      accounts.refetch()
-      toast.success('Account added')
-    } catch {
+    const res = await honoClient.accounts.$post({ json: { address } })
+    if (!res.ok) {
       toast.error('Failed to add account')
+      return
     }
+
+    accounts.refetch()
+    toast.success('Account added')
   }
 
   return (

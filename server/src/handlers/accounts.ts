@@ -49,7 +49,7 @@ export async function addAccount(c: Context) {
   const safeParse = addAccountSchema.safeParse(body)
 
   if (!safeParse.success) {
-    return c.json({ error: safeParse }, 400)
+    return c.json({ error: safeParse.error }, 400)
   }
 
   let { address, name } = safeParse.data

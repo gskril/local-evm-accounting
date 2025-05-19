@@ -30,3 +30,34 @@ export async function fetchBalances(c: Context) {
 
   return c.json({ success: true })
 }
+
+export async function getBalances(c: Context) {
+  const { balances, tokens } = await db.transaction().execute(async (trx) => {
+    // Get all balances and aggregate by token (address + chain)
+    const balances = await trx
+      .selectFrom('balances')
+      .select(['token', 'chain', trx.fn.sum('balance').as('balance')])
+      .where('balance', '>', 0)
+      .groupBy(['token', 'chain'])
+      .execute()
+
+    const tokens = await trx
+      .selectFrom('tokens')
+      .selectAll()
+      .where(
+        'id',
+        'in',
+        balances.map((b) => b.token)
+      )
+      .execute()
+
+    return { balances, tokens }
+  })
+
+  return c.json(
+    balances.map((b) => ({
+      ...b,
+      token: tokens.find((t) => t.id === b.token),
+    }))
+  )
+}

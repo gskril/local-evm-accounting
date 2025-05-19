@@ -36,3 +36,24 @@ export function useChains() {
     },
   })
 }
+
+export function useTokens() {
+  return useQuery({
+    queryKey: ['tokens'],
+    queryFn: async () => {
+      const res = await honoClient.tokens.$get()
+      return res.json()
+    },
+  })
+}
+
+export function useBalances() {
+  return useQuery({
+    queryKey: ['balances'],
+    refetchInterval: 1000,
+    queryFn: async () => {
+      const res = await honoClient.balances.$get()
+      return res.json()
+    },
+  })
+}
