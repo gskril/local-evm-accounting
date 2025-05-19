@@ -1,15 +1,13 @@
 import type { Context } from 'hono'
-import { isAddress } from 'viem'
+import { erc20Abi, isAddress } from 'viem'
 import { z } from 'zod'
 
+import { getViemClient } from '../chains'
 import { db } from '../db'
 
 const schema = z.object({
   address: z.string().refine(isAddress),
-  chain: z.number(),
-  name: z.string(),
-  symbol: z.string(),
-  decimals: z.number(),
+  chainId: z.coerce.number(),
 })
 
 export async function addToken(c: Context) {
@@ -19,7 +17,35 @@ export async function addToken(c: Context) {
     return c.json(safeParse.error, 400)
   }
 
-  await db.insertInto('tokens').values(safeParse.data).execute()
+  const client = await getViemClient(safeParse.data.chainId)
+
+  if (!client) {
+    throw new Error(`Chain ${safeParse.data.chainId} not found`)
+  }
+
+  const contract = {
+    address: safeParse.data.address,
+    abi: erc20Abi,
+  }
+
+  const [name, symbol, decimals] = await client.multicall({
+    contracts: [
+      { ...contract, functionName: 'name' },
+      { ...contract, functionName: 'symbol' },
+      { ...contract, functionName: 'decimals' },
+    ],
+  })
+
+  await db
+    .insertInto('tokens')
+    .values({
+      address: safeParse.data.address,
+      chain: safeParse.data.chainId,
+      name: name.result ?? '',
+      symbol: symbol.result ?? '',
+      decimals: decimals.result ?? 0,
+    })
+    .execute()
 
   return c.json({ success: true })
 }

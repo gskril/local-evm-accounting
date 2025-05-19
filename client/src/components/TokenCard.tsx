@@ -2,21 +2,27 @@ import { toast } from 'sonner'
 import { isAddress } from 'viem/utils'
 import { zfd } from 'zod-form-data'
 
-import { honoClient, useTokens } from '../hooks/useHono'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+import { honoClient, useChains, useTokens } from '../hooks/useHono'
 import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
 
 const schema = zfd.formData({
   address: zfd.text().refine(isAddress),
-  chain: zfd.numeric(),
-  name: zfd.text(),
-  symbol: zfd.text(),
-  decimals: zfd.numeric(),
+  chainId: zfd.text().refine(Number),
 })
 
 export function TokenCard() {
   const tokens = useTokens()
+  const { data: chains } = useChains()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -30,13 +36,14 @@ export function TokenCard() {
 
     const json = safeParse.data
 
-    try {
-      await honoClient.tokens.$post({ json })
-      tokens.refetch()
-      toast.success('Token added')
-    } catch {
+    const res = await honoClient.tokens.$post({ json })
+    if (!res.ok) {
       toast.error('Failed to add token')
+      return
     }
+
+    tokens.refetch()
+    toast.success('Token added')
   }
 
   return (
@@ -75,12 +82,28 @@ export function TokenCard() {
 
       <CardFooter>
         <form onSubmit={handleSubmit} className="flex w-full gap-2">
-          <Input name="address" placeholder="Enter an address or ENS name" />
-          <Input name="chain" placeholder="Enter an address or ENS name" />
-          <Input name="name" placeholder="Enter an address or ENS name" />
-          <Input name="symbol" placeholder="Enter an address or ENS name" />
-          <Input name="decimals" placeholder="Enter an address or ENS name" />
-          <Button type="submit">Add Token</Button>
+          <Select name="chainId">
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Chain" />
+            </SelectTrigger>
+            <SelectContent>
+              {chains?.map((chain) => (
+                <SelectItem key={chain.id} value={chain.id.toString()}>
+                  {chain.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input
+            name="address"
+            placeholder="Token address"
+            autoComplete="off"
+            data-1p-ignore
+          />
+          <Button type="submit" disabled={!chains}>
+            Add Token
+          </Button>
         </form>
       </CardFooter>
     </Card>
