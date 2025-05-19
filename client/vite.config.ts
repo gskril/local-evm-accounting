@@ -14,4 +14,11 @@ export default defineConfig({
   optimizeDeps: {
     include: ['server/hc'],
   },
+  build: {
+    rollupOptions: {
+      // TODO: figure out why these were being bundled in the first place.
+      // I don't think we should have to specify these in the client build.
+      external: ['bullmq', 'hono', 'ioredis', 'kysely', 'viem', 'zod'],
+    },
+  },
 })
