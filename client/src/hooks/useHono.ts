@@ -53,7 +53,21 @@ export function useBalances() {
     refetchInterval: 1000,
     queryFn: async () => {
       const res = await honoClient.balances.$get()
-      return res.json()
+      const json = await res.json()
+      // TODO: figure out why honoClient isn't inferring the type
+      return json as unknown as {
+        token:
+          | {
+              symbol: string
+              id: number
+              address: `0x${string}`
+              chain: number
+              name: string
+              decimals: number
+            }
+          | undefined
+        balance: string | number | bigint
+      }[]
     },
   })
 }

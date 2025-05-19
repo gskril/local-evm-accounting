@@ -27,7 +27,7 @@ export function BalanceCard() {
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {balances.data?.map((balance) => (
-          <div key={`${balance.chain}:${balance.token}:${balance.owner}`}>
+          <div key={balance.token?.id}>
             <p>{balance.token?.name}</p>
             <p className="text-muted-foreground text-sm">{balance.balance}</p>
           </div>
