@@ -10,13 +10,14 @@ export function BalanceCard() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    try {
-      await honoClient.balances.$post()
-      balances.refetch()
-      toast.success('Starting to refetch balances in the background')
-    } catch {
+    const res = await honoClient.balances.$post()
+    if (!res.ok) {
       toast.error('Failed to refetch balances')
+      return
     }
+
+    balances.refetch()
+    toast.success('Starting to refetch balances in the background')
   }
 
   return (

@@ -48,13 +48,14 @@ export function TokenCard() {
         <Button
           variant="secondary"
           onClick={async () => {
-            try {
-              await honoClient.setup.tokens.$post()
-              toast.success('Added default tokens')
-              tokens.refetch()
-            } catch {
+            const res = await honoClient.setup.tokens.$post()
+            if (!res.ok) {
               toast.error('Error adding tokens')
+              return
             }
+
+            toast.success('Added default tokens')
+            tokens.refetch()
           }}
         >
           Add Default Tokens

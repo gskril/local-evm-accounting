@@ -35,13 +35,14 @@ export function ChainCard() {
 
     const json = safeParse.data
 
-    try {
-      await honoClient.chains.$post({ json })
-      chains.refetch()
-      toast.success('Chain added')
-    } catch {
+    const res = await honoClient.chains.$post({ json })
+    if (!res.ok) {
       toast.error('Failed to add chain')
+      return
     }
+
+    chains.refetch()
+    toast.success('Chain added')
   }
 
   return (
