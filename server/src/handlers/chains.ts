@@ -16,7 +16,11 @@ export async function addChain(c: Context) {
     return c.json(safeParse.error, 400)
   }
 
-  await db.insertInto('chains').values(safeParse.data).execute()
+  await db
+    .insertInto('chains')
+    .values(safeParse.data)
+    .onConflict((oc) => oc.columns(['id']).doUpdateSet(safeParse.data))
+    .execute()
 
   return c.json({ success: true })
 }

@@ -5,13 +5,11 @@ import { TokenCard } from '@/components/TokenCard'
 
 export function Home() {
   return (
-    <div className="flex min-h-svh w-full flex-col gap-4 bg-neutral-50 p-4">
-      <div className="grid w-full grid-cols-2 gap-4">
-        <ChainCard />
-        <AccountCard />
-        <BalanceCard />
-        <TokenCard />
-      </div>
+    <div className="grid w-full grid-cols-2 gap-4">
+      <ChainCard />
+      <AccountCard />
+      <BalanceCard />
+      <TokenCard />
     </div>
   )
 }
