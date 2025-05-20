@@ -1,5 +1,5 @@
 import { VariantProps } from 'class-variance-authority'
-import { Pencil } from 'lucide-react'
+import { Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
 import { zfd } from 'zod-form-data'
 
@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { honoClient, useChains } from '../hooks/useHono'
+import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
 import { Button, buttonVariants } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
@@ -33,6 +33,8 @@ const addChainSchema = zfd.formData({
 
 export function ChainCard() {
   const chains = useChains()
+  const { refetch: refetchTokens } = useTokens()
+  const { refetch: refetchBalances } = useBalances()
 
   return (
     <Card>
@@ -70,12 +72,37 @@ export function ChainCard() {
               </p>
             </div>
 
-            <ChainDialog
-              prompt="Edit"
-              chainId={chain.id}
-              variant="outline"
-              size="icon"
-            />
+            <div className="flex gap-2">
+              <ChainDialog
+                prompt="Edit"
+                chainId={chain.id}
+                variant="outline"
+                size="icon"
+              />
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={async () => {
+                  const promise = honoClient.chains[':id'].$delete({
+                    param: { id: chain.id.toString() },
+                  })
+
+                  toast.promise(promise, {
+                    loading: 'Deleting chain...',
+                    success: () => {
+                      chains.refetch()
+                      refetchTokens()
+                      refetchBalances()
+                      return 'Chain deleted'
+                    },
+                    error: 'Failed to delete chain',
+                  })
+                }}
+              >
+                <Trash />
+              </Button>
+            </div>
           </div>
         ))}
       </CardContent>

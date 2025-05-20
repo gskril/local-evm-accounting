@@ -3,7 +3,7 @@ import { cors } from 'hono/cors'
 
 import { addAccount, getAccount, getAccounts } from './handlers/accounts'
 import { fetchBalances, getBalances } from './handlers/balances'
-import { addChain, getChains } from './handlers/chains'
+import { addChain, deleteChain, getChains } from './handlers/chains'
 import { setupDefaultChains, setupDefaultTokens } from './handlers/setup'
 import { addToken, getTokens } from './handlers/tokens'
 
@@ -20,6 +20,7 @@ export const routes = api
   .post('/accounts', (c) => addAccount(c))
   .post('/balances', (c) => fetchBalances(c))
   .post('/chains', (c) => addChain(c))
+  .delete('/chains/:id', (c) => deleteChain(c))
   .post('/tokens', (c) => addToken(c))
   .post('/setup/chains', (c) => setupDefaultChains(c))
   .post('/setup/tokens', (c) => setupDefaultTokens(c))
