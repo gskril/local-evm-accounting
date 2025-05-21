@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { erc20Abi, isAddress } from 'viem'
+import { erc20Abi, isAddress, zeroAddress } from 'viem'
 import { z } from 'zod'
 
 import { getViemClient } from '../chains'
@@ -19,33 +19,45 @@ export async function addToken(c: Context) {
 
   const client = await getViemClient(safeParse.data.chainId)
 
-  if (!client) {
-    throw new Error(`Chain ${safeParse.data.chainId} not found`)
-  }
-
-  const contract = {
-    address: safeParse.data.address,
-    abi: erc20Abi,
-  }
-
-  const [name, symbol, decimals] = await client.multicall({
-    contracts: [
-      { ...contract, functionName: 'name' },
-      { ...contract, functionName: 'symbol' },
-      { ...contract, functionName: 'decimals' },
-    ],
-  })
-
-  await db
-    .insertInto('tokens')
-    .values({
+  // Treat ETH as a special case
+  if (safeParse.data.address === zeroAddress) {
+    await db
+      .insertInto('tokens')
+      .values({
+        address: safeParse.data.address,
+        chain: safeParse.data.chainId,
+        name: 'Ether',
+        symbol: 'ETH',
+        decimals: 18,
+      })
+      .onConflict((oc) => oc.doNothing())
+      .execute()
+  } else {
+    const contract = {
       address: safeParse.data.address,
-      chain: safeParse.data.chainId,
-      name: name.result ?? '',
-      symbol: symbol.result ?? '',
-      decimals: decimals.result ?? 0,
+      abi: erc20Abi,
+    }
+
+    const [name, symbol, decimals] = await client.multicall({
+      contracts: [
+        { ...contract, functionName: 'name' },
+        { ...contract, functionName: 'symbol' },
+        { ...contract, functionName: 'decimals' },
+      ],
     })
-    .execute()
+
+    await db
+      .insertInto('tokens')
+      .values({
+        address: safeParse.data.address,
+        chain: safeParse.data.chainId,
+        name: name.result ?? '',
+        symbol: symbol.result ?? '',
+        decimals: decimals.result ?? 0,
+      })
+      .onConflict((oc) => oc.doNothing())
+      .execute()
+  }
 
   return c.json({ success: true })
 }

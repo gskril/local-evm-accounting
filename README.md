@@ -1,6 +1,3 @@
-> [!NOTE]  
-> This is a work in progress and not currently operational.
-
 # Local-First EVM Portfolio Tracker
 
 A simple portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints. The program explicity doesn't care about transaction history to reduce complexity and maximize privacy.
@@ -8,6 +5,9 @@ A simple portfolio tracker for EVM accounts that gets data exclusively from user
 Uses the [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values.
 
 For more complex portfolio tracking and tax preparation, use [Rotki](https://rotki.com/).
+
+> [!NOTE]  
+> I haven't thought of a clean way to handle custom gas tokens, so there's currently no way to track POL on Polygon for example.
 
 ## Features
 

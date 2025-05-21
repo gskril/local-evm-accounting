@@ -34,12 +34,21 @@ export async function fetchBalances(c: Context) {
 export async function getBalances(c: Context) {
   const { balances, tokens } = await db.transaction().execute(async (trx) => {
     // Get all balances and aggregate by token (address + chain)
-    const balances = await trx
+    const balances = (await trx
       .selectFrom('balances')
-      .select(['token', trx.fn.sum('balance').as('balance')])
+      .select([
+        'token',
+        trx.fn.sum('balance').as('balance'),
+        trx.fn.sum('ethValue').as('ethValue'),
+      ])
       .where('balance', '>', 0)
       .groupBy(['token'])
-      .execute()
+      .execute()) as {
+      // For some reason kysely infers `balance` and `ethValue` incorrectly
+      token: number
+      balance: number
+      ethValue: number
+    }[]
 
     const tokens = await trx
       .selectFrom('tokens')
@@ -54,10 +63,11 @@ export async function getBalances(c: Context) {
     return { balances, tokens }
   })
 
-  return c.json(
-    balances.map((b) => ({
-      ...b,
-      token: tokens.find((t) => t.id === b.token),
-    }))
-  )
+  const data = balances.map((b) => ({
+    ...b,
+    token: tokens.find((t) => t.id === b.token),
+  }))
+
+  const totalEthValue = data.reduce((acc, b) => acc + b.ethValue, 0)
+  return c.json({ totalEthValue, tokens: data })
 }

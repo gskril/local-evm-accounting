@@ -56,18 +56,38 @@ export function useBalances() {
       const json = await res.json()
       // TODO: figure out why honoClient isn't inferring the type
       return json as unknown as {
-        token:
-          | {
-              symbol: string
-              id: number
-              address: `0x${string}`
-              chain: number
-              name: string
-              decimals: number
-            }
-          | undefined
-        balance: string | number | bigint
-      }[]
+        totalEthValue: number
+        tokens: {
+          token:
+            | {
+                symbol: string
+                id: number
+                address: `0x${string}`
+                chain: number
+                name: string
+                decimals: number
+              }
+            | undefined
+          balance: number
+          ethValue: number
+        }[]
+      }
+    },
+  })
+}
+
+export function useFiat() {
+  return useQuery({
+    queryKey: ['fiat'],
+    queryFn: async () => {
+      const res = await honoClient.fiat.$get()
+      const array = await res.json()
+
+      function getRate(key: string | undefined) {
+        return array.find((item) => item.label === key)?.rateToEth ?? 0
+      }
+
+      return { array, getRate }
     },
   })
 }
