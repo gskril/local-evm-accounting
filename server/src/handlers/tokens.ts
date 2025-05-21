@@ -77,3 +77,24 @@ export async function getTokens(c: Context) {
     }))
   )
 }
+
+const deleteTokenSchema = z.object({
+  address: z.string().refine(isAddress),
+  chainId: z.coerce.number(),
+})
+
+export async function deleteToken(c: Context) {
+  const safeParse = deleteTokenSchema.safeParse(await c.req.json())
+
+  if (!safeParse.success) {
+    return c.json(safeParse.error, 400)
+  }
+
+  await db
+    .deleteFrom('tokens')
+    .where('address', '=', safeParse.data.address)
+    .where('chain', '=', safeParse.data.chainId)
+    .execute()
+
+  return c.json({ success: true })
+}

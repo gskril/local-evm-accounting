@@ -1,3 +1,4 @@
+import { Trash } from 'lucide-react'
 import { toast } from 'sonner'
 import { isAddress } from 'viem/utils'
 import { zfd } from 'zod-form-data'
@@ -71,11 +72,37 @@ export function TokenCard() {
 
       <CardContent className="flex flex-col gap-2">
         {tokens.data?.map((token) => (
-          <div key={`${token.chain}:${token.address}`}>
-            <p>{token.name}</p>
-            <p className="text-muted-foreground text-sm">
-              {token.chain?.name} - {token.address}
-            </p>
+          <div
+            key={`${token.chain}:${token.address}`}
+            className="flex items-center justify-between"
+          >
+            <div>
+              <p>{token.name}</p>
+              <p className="text-muted-foreground text-sm">
+                {token.chain?.name} - {token.address}
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={async () => {
+                const promise = honoClient.tokens.$delete({
+                  json: { address: token.address, chainId: token.chain!.id },
+                })
+
+                toast.promise(promise, {
+                  loading: 'Deleting token...',
+                  success: () => {
+                    tokens.refetch()
+                    return 'Token deleted'
+                  },
+                  error: 'Failed to delete token',
+                })
+              }}
+            >
+              <Trash />
+            </Button>
           </div>
         ))}
       </CardContent>
