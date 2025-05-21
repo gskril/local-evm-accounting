@@ -9,13 +9,13 @@ For more complex portfolio tracking and tax preparation, use [Rotki](https://rot
 > [!NOTE]  
 > I haven't thought of a clean way to handle custom gas tokens, so there's currently no way to track POL on Polygon for example.
 
-## Features
+## Core Features
 
-- [ ] Add account
-- [ ] Add chain
-- [ ] Add token
-- [ ] View token balances
-- [ ] View portfolio value (in USD)
+- [x] Add/edit accounts
+- [x] Add/edit chains
+- [x] Add/edit tokens
+- [x] View token balances
+- [x] View token/portfolio value in USD/EUR/ETH
 
 ## Getting Started
 
