@@ -1,10 +1,10 @@
 import type { Job } from 'bullmq'
 import type { Insertable } from 'kysely'
-import { getRateToEth } from 'server/src/price'
 import { type Address, erc20Abi, formatUnits } from 'viem'
 
 import { getViemClient } from '../../chains'
 import { type Tables, db } from '../../db'
+import { getRateToEth } from '../../price'
 import { createQueue, createWorker } from '../bullmq'
 
 type JobData = {
