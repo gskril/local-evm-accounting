@@ -1,5 +1,6 @@
 import type { Job } from 'bullmq'
 import type { Insertable } from 'kysely'
+import { getRateToEth } from 'server/src/price'
 import { type Address, erc20Abi, formatUnits } from 'viem'
 
 import { getViemClient } from '../../chains'
@@ -36,11 +37,18 @@ async function processJob(job: Job<JobData>) {
     args: [job.data.owner],
   })
 
+  const formattedBalance = Number(formatUnits(balance, token.decimals))
+  const rateToEth = await getRateToEth({
+    address: job.data.token,
+    chainId: job.data.chainId,
+    decimals: token.decimals,
+  })
+
   const data: Insertable<Tables['balances']> = {
     token: token.id,
     owner: job.data.owner,
-    balance: Number(formatUnits(balance, token.decimals)),
-    ethValue: 0,
+    balance: formattedBalance,
+    ethValue: formattedBalance * rateToEth,
   }
 
   await db

@@ -5,7 +5,7 @@
 
 A simple portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints. The program explicity doesn't care about transaction history to reduce complexity and maximize privacy.
 
-Uses [Check The Chain](https://github.com/NaniDAO/ctc) or [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values.
+Uses the [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values.
 
 For more complex portfolio tracking and tax preparation, use [Rotki](https://rotki.com/).
 

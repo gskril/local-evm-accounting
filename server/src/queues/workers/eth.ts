@@ -35,7 +35,7 @@ async function processJob(job: Job<JobData>) {
     token: token.id,
     owner: job.data.address,
     balance: Number(formatEther(balance)),
-    ethValue: 0,
+    ethValue: Number(formatEther(balance)),
   }
 
   await db
