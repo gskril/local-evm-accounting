@@ -1,7 +1,12 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
-import { addAccount, getAccount, getAccounts } from './handlers/accounts'
+import {
+  addAccount,
+  deleteAccount,
+  getAccount,
+  getAccounts,
+} from './handlers/accounts'
 import { fetchBalances, getBalances } from './handlers/balances'
 import { addChain, deleteChain, getChains } from './handlers/chains'
 import { getFiat } from './handlers/fiat'
@@ -22,7 +27,8 @@ export const routes = api
   .post('/accounts', (c) => addAccount(c))
   .post('/balances', (c) => fetchBalances(c))
   .post('/chains', (c) => addChain(c))
-  .delete('/chains/:id', (c) => deleteChain(c))
   .post('/tokens', (c) => addToken(c))
   .post('/setup/chains', (c) => setupDefaultChains(c))
   .post('/setup/tokens', (c) => setupDefaultTokens(c))
+  .delete('/chains/:id', (c) => deleteChain(c))
+  .delete('/accounts/:address', (c) => deleteAccount(c))

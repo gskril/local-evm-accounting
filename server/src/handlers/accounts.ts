@@ -84,3 +84,14 @@ export async function addAccount(c: Context) {
 
   return c.json({ success: true })
 }
+
+export async function deleteAccount(c: Context) {
+  const address = c.req.param('address')
+
+  if (!isAddress(address)) {
+    return c.json({ error: 'Invalid address' }, 400)
+  }
+
+  await db.deleteFrom('accounts').where('address', '=', address).execute()
+  return c.json({ success: true })
+}

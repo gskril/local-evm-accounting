@@ -106,15 +106,6 @@ export function ChainCard() {
           </div>
         ))}
       </CardContent>
-
-      {/* <CardFooter>
-        <form onSubmit={handleAddChain} className="flex w-full gap-2">
-          <Input name="name" placeholder="Chain name" />
-          <Input name="id" placeholder="Chain ID" />
-          <Input name="rpcUrl" placeholder="RPC URL" />
-          <Button type="submit">Add Chain</Button>
-        </form>
-      </CardFooter> */}
     </Card>
   )
 }
@@ -141,15 +132,16 @@ function ChainDialog({
     }
 
     const json = safeParse.data
+    const promise = honoClient.chains.$post({ json })
 
-    const res = await honoClient.chains.$post({ json })
-    if (!res.ok) {
-      toast.error('Failed to add chain')
-      return
-    }
-
-    toast.success('Chain added')
-    chains.refetch()
+    toast.promise(promise, {
+      loading: 'Adding chain...',
+      success: () => {
+        chains.refetch()
+        return 'Chain added'
+      },
+      error: 'Failed to add chain',
+    })
   }
 
   return (
