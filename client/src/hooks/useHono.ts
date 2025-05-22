@@ -3,7 +3,8 @@ import { hcWithType } from 'server/hc'
 
 import { Hex } from '@/lib/types'
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
+export const SERVER_URL =
+  import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
 
 export const honoClient = hcWithType(SERVER_URL)
 
@@ -47,10 +48,10 @@ export function useTokens() {
   })
 }
 
-export function useBalances() {
+// Nonce should be the number of completed jobs in the queue, so it only refetches when the number of completed jobs changes
+export function useBalances(nonce: number | undefined) {
   return useQuery({
-    queryKey: ['balances'],
-    refetchInterval: 1000,
+    queryKey: ['balances', nonce],
     queryFn: async () => {
       const res = await honoClient.balances.$get()
       const json = await res.json()

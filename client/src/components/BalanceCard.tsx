@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 
 import { useCurrency } from '@/hooks/useCurrency'
+import { useQueues } from '@/hooks/useQueues'
 import { toFixed } from '@/lib/utils'
 
 import { honoClient, useBalances, useFiat } from '../hooks/useHono'
@@ -8,7 +9,8 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 
 export function BalanceCard() {
-  const balances = useBalances()
+  const { data: queues } = useQueues()
+  const balances = useBalances(queues?.completed)
   const { currency } = useCurrency()
   const { data: fiat } = useFiat()
 

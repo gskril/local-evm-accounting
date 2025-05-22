@@ -74,7 +74,6 @@ export async function addAccount(c: Context) {
   }
 
   const data = { address: address as Address, name }
-  console.log(data)
 
   await db
     .insertInto('accounts')

@@ -73,7 +73,7 @@ export function TokenCard() {
       <CardContent className="flex flex-col gap-2">
         {tokens.data?.map((token) => (
           <div
-            key={`${token.chain}:${token.address}`}
+            key={`${token.chain?.id}:${token.address}`}
             className="flex items-center justify-between"
           >
             <div>

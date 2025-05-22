@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 
+import { useQueues } from '@/hooks/useQueues'
 import { cn } from '@/lib/utils'
 
 import { CurrencySelector } from './CurrencySelector'
@@ -20,6 +21,7 @@ const links = [
 ]
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
+  const queues = useQueues()
 
   return (
     <div className="grid grid-cols-[15rem_1fr]">
@@ -42,7 +44,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
 
-        <CurrencySelector />
+        <div className="flex flex-col gap-2">
+          <CurrencySelector />
+          <div className="text-muted-foreground text-sm">
+            {queues.data?.inProgress} jobs in progress
+          </div>
+        </div>
       </aside>
 
       <main className="flex min-h-svh w-full flex-col gap-6 bg-neutral-50 p-6">
