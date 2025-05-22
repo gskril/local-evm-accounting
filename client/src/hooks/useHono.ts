@@ -49,7 +49,7 @@ export function useTokens() {
 }
 
 // Nonce should be the number of completed jobs in the queue, so it only refetches when the number of completed jobs changes
-export function useBalances(nonce: number | undefined) {
+export function useBalances(nonce?: number | undefined) {
   return useQuery({
     queryKey: ['balances', nonce],
     queryFn: async () => {
