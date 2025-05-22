@@ -1,12 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
 import { GetQueuesResponse } from '../lib/bullmq-types'
 import { SERVER_URL } from './useHono'
 
 export function useQueues() {
+  const [isInProgress, setIsInProgress] = useState(false)
+
   return useQuery({
     queryKey: ['queues'],
-    refetchInterval: 1000,
+    refetchInterval: isInProgress ? 1000 : false,
     queryFn: async () => {
       const res = await fetch(`${SERVER_URL}/dashboard/api/queues`)
       const data = (await res.json()) as GetQueuesResponse
@@ -23,6 +26,8 @@ export function useQueues() {
           0
         )
       )
+
+      setIsInProgress(active + waiting > 0)
 
       return {
         completed,
