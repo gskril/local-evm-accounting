@@ -81,8 +81,11 @@ export function useBalances() {
 }
 
 export function useFiat() {
+  const { data: chains } = useChains()
+  const mainnetIsConfigured = chains?.some((chain) => chain.id === 1)
+
   return useQuery({
-    queryKey: ['fiat'],
+    queryKey: ['fiat', mainnetIsConfigured],
     queryFn: async () => {
       const res = await honoClient.fiat.$get()
       const array = await res.json()

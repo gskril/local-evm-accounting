@@ -22,7 +22,7 @@ export function CurrencySelector() {
         <span className="text-muted-foreground">Currency:</span>
         <SelectValue defaultValue="usd" />
       </SelectTrigger>
-      <SelectContent position="popper">
+      <SelectContent side="top">
         {currencies.data?.array.map((currency) => (
           <SelectItem key={currency.label} value={currency.label}>
             {currency.label}

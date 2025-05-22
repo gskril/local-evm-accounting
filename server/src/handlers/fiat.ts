@@ -7,7 +7,12 @@ export async function getFiat(c: Context) {
   const client = await getViemClient(1).catch(() => null)
 
   if (!client) {
-    throw new Error('Mainnet RPC needed to get fiat prices')
+    return c.json([
+      {
+        label: 'ETH',
+        rateToEth: 1,
+      },
+    ])
   }
 
   const [usd, eur] = await Promise.all([

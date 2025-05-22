@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { AccountCard } from './components/AccountCard'
+import { BalanceCard } from './components/BalanceCard'
 import { ChainCard } from './components/ChainCard'
 import { Layout } from './components/Layout'
 import { TokenCard } from './components/TokenCard'
@@ -11,6 +12,7 @@ function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/balances" element={<BalanceCard />} />
         <Route path="/accounts" element={<AccountCard />} />
         <Route path="/chains" element={<ChainCard />} />
         <Route path="/tokens" element={<TokenCard />} />

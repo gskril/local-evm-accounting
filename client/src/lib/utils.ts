@@ -21,3 +21,14 @@ export function toFixed(num: number, maxDecimals: number) {
     }
   }
 }
+
+export function formatCurrency(num: number, currency: string) {
+  if (currency === 'ETH') {
+    return `Ξ${toFixed(num, 4)}`
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+  }).format(num)
+}

@@ -4,7 +4,7 @@ import { useQueues } from '@/hooks/useQueues'
 
 import { useCurrency } from '../hooks/useCurrency'
 import { honoClient, useBalances, useFiat } from '../hooks/useHono'
-import { toFixed } from '../lib/utils'
+import { formatCurrency, toFixed } from '../lib/utils'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
@@ -13,10 +13,6 @@ export function BalanceCard() {
   const queues = useQueues()
   const { currency } = useCurrency()
   const { data: fiat } = useFiat()
-
-  function round(num: number) {
-    return toFixed(num, currency === 'ETH' ? 4 : 2)
-  }
 
   async function handleRefresh(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -40,8 +36,10 @@ export function BalanceCard() {
           Aggregated Balances{' '}
           {!!balances.data?.totalEthValue && fiat && currency && (
             <span className="text-muted-foreground text-sm">
-              ({round(balances.data.totalEthValue / fiat.getRate(currency))}{' '}
-              {currency})
+              {formatCurrency(
+                balances.data.totalEthValue / fiat.getRate(currency),
+                currency
+              )}
             </span>
           )}
         </CardTitle>
@@ -56,11 +54,15 @@ export function BalanceCard() {
           <div key={balance.token?.id}>
             <p>{balance.token?.name}</p>
             <p className="text-muted-foreground text-sm">
-              {round(balance.balance)} tokens
+              {toFixed(balance.balance, 4)} tokens
             </p>
             {fiat && currency && (
               <p className="text-muted-foreground text-sm">
-                worth {round(balance.ethValue / fiat.getRate(currency))}{' '}
+                worth{' '}
+                {formatCurrency(
+                  balance.ethValue / fiat.getRate(currency),
+                  currency
+                )}{' '}
                 {currency}
               </p>
             )}

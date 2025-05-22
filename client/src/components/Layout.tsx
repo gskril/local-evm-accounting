@@ -11,6 +11,10 @@ const links = [
     to: '/',
   },
   {
+    label: 'Balances',
+    to: '/balances',
+  },
+  {
     label: 'Accounts',
     to: '/accounts',
   },
