@@ -1,12 +1,12 @@
 import type { Context } from 'hono'
-import { erc20Abi, isAddress, zeroAddress } from 'viem'
+import { type Address, erc20Abi, isAddress, zeroAddress } from 'viem'
 import { z } from 'zod'
 
 import { getViemClient } from '../chains'
 import { db } from '../db'
 
 const schema = z.object({
-  address: z.string().refine(isAddress),
+  addressOrName: z.string(),
   chainId: z.coerce.number(),
 })
 
@@ -18,14 +18,15 @@ export async function addToken(c: Context) {
   }
 
   const client = await getViemClient(safeParse.data.chainId)
+  const { addressOrName, chainId } = safeParse.data
 
   // Treat ETH as a special case
-  if (safeParse.data.address === zeroAddress) {
+  if (addressOrName === zeroAddress) {
     await db
       .insertInto('tokens')
       .values({
-        address: safeParse.data.address,
-        chain: safeParse.data.chainId,
+        address: zeroAddress,
+        chain: chainId,
         name: 'Ether',
         symbol: 'ETH',
         decimals: 18,
@@ -33,8 +34,26 @@ export async function addToken(c: Context) {
       .onConflict((oc) => oc.doNothing())
       .execute()
   } else {
+    let address: Address
+
+    // If the input is not an address, treat it as an ENS name
+    if (!isAddress(addressOrName)) {
+      const l1Client =
+        safeParse.data.chainId === 1 ? client : await getViemClient(1)
+
+      const ensAddress = await l1Client.getEnsAddress({ name: addressOrName })
+
+      if (!ensAddress) {
+        return c.json({ error: 'ENS name not found' }, 400)
+      }
+
+      address = ensAddress
+    } else {
+      address = addressOrName
+    }
+
     const contract = {
-      address: safeParse.data.address,
+      address,
       abi: erc20Abi,
     }
 
@@ -46,14 +65,18 @@ export async function addToken(c: Context) {
       ],
     })
 
+    if (!name.result || !symbol.result || !decimals.result) {
+      return c.json({ error: 'Failed to fetch token data' }, 409)
+    }
+
     await db
       .insertInto('tokens')
       .values({
-        address: safeParse.data.address,
-        chain: safeParse.data.chainId,
-        name: name.result ?? '',
-        symbol: symbol.result ?? '',
-        decimals: decimals.result ?? 0,
+        address,
+        chain: chainId,
+        name: name.result,
+        symbol: symbol.result,
+        decimals: decimals.result,
       })
       .onConflict((oc) => oc.doNothing())
       .execute()

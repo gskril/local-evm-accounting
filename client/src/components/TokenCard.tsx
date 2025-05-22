@@ -1,6 +1,5 @@
 import { Trash } from 'lucide-react'
 import { toast } from 'sonner'
-import { isAddress } from 'viem/utils'
 import { zfd } from 'zod-form-data'
 
 import {
@@ -17,7 +16,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
 
 const schema = zfd.formData({
-  address: zfd.text().refine(isAddress),
+  addressOrName: zfd.text(),
   chainId: zfd.text().refine(Number),
 })
 
@@ -128,7 +127,7 @@ export function TokenCard() {
           </Select>
 
           <Input
-            name="address"
+            name="addressOrName"
             placeholder="Token address"
             autoComplete="off"
             data-1p-ignore
