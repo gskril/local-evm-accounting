@@ -1,7 +1,6 @@
 import { toast } from 'sonner'
 
 import { useCurrency } from '@/hooks/useCurrency'
-import { useQueues } from '@/hooks/useQueues'
 import { toFixed } from '@/lib/utils'
 
 import { honoClient, useBalances, useFiat } from '../hooks/useHono'
@@ -9,8 +8,7 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 
 export function BalanceCard() {
-  const { data: queues } = useQueues()
-  const balances = useBalances(queues?.completed)
+  const balances = useBalances()
   const { currency } = useCurrency()
   const { data: fiat } = useFiat()
 
@@ -20,15 +18,14 @@ export function BalanceCard() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const promise = honoClient.balances.$post()
+    const msg = 'Starting to refetch balances in the background'
 
-    const res = await honoClient.balances.$post()
-    if (!res.ok) {
-      toast.error('Failed to refetch balances')
-      return
-    }
-
-    balances.refetch()
-    toast.success('Starting to refetch balances in the background')
+    toast.promise(promise, {
+      loading: msg,
+      success: msg,
+      error: 'Failed to refetch balances',
+    })
   }
 
   return (

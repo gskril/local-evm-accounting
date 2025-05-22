@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { hcWithType } from 'server/hc'
 
-import { Hex } from '@/lib/types'
+import { Hex } from '../lib/types'
+import { useQueues } from './useQueues'
 
 export const SERVER_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
@@ -48,10 +49,12 @@ export function useTokens() {
   })
 }
 
-// Nonce should be the number of completed jobs in the queue, so it only refetches when the number of completed jobs changes
-export function useBalances(nonce?: number | undefined) {
+export function useBalances() {
+  const { data: queues } = useQueues()
+
   return useQuery({
-    queryKey: ['balances', nonce],
+    // Only refetch when the queue is active
+    queryKey: ['balances', queues?.inProgress ?? 0],
     queryFn: async () => {
       const res = await honoClient.balances.$get()
       const json = await res.json()

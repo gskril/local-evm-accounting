@@ -46,13 +46,15 @@ export function ChainCard() {
           <Button
             variant="secondary"
             onClick={async () => {
-              try {
-                await honoClient.setup.chains.$post()
-                toast.success('Added default chains')
-                chains.refetch()
-              } catch {
-                toast.error('Error adding tokens')
-              }
+              const promise = honoClient.setup.chains.$post()
+
+              toast.promise(promise, {
+                loading: 'Adding default chains...',
+                success: () => {
+                  chains.refetch()
+                  return 'Added default chains'
+                },
+              })
             }}
           >
             Add Defaults

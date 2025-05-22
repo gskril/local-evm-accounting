@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { honoClient, useAccounts } from '../hooks/useHono'
+import { honoClient, useAccounts, useBalances } from '../hooks/useHono'
 import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
@@ -20,20 +20,22 @@ import { Label } from './ui/label'
 
 export function AccountCard() {
   const accounts = useAccounts()
+  const { refetch: refetchBalances } = useBalances()
 
   async function handleAddAccount(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.target as HTMLFormElement)
     const address = formData.get('address') as string
+    const promise = honoClient.accounts.$post({ json: { address } })
 
-    const res = await honoClient.accounts.$post({ json: { address } })
-    if (!res.ok) {
-      toast.error('Failed to add account')
-      return
-    }
-
-    accounts.refetch()
-    toast.success('Account added')
+    toast.promise(promise, {
+      loading: 'Adding account...',
+      success: () => {
+        accounts.refetch()
+        return 'Account added'
+      },
+      error: 'Failed to add account',
+    })
   }
 
   return (
@@ -67,6 +69,7 @@ export function AccountCard() {
                     loading: 'Deleting account...',
                     success: () => {
                       accounts.refetch()
+                      refetchBalances()
                       return 'Account deleted'
                     },
                     error: 'Failed to delete account',

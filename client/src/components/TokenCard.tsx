@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import { honoClient, useChains, useTokens } from '../hooks/useHono'
+import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
 import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
@@ -23,6 +23,7 @@ const schema = zfd.formData({
 
 export function TokenCard() {
   const tokens = useTokens()
+  const { refetch: refetchBalances } = useBalances()
   const { data: chains } = useChains()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -36,15 +37,16 @@ export function TokenCard() {
     }
 
     const json = safeParse.data
+    const promise = honoClient.tokens.$post({ json })
 
-    const res = await honoClient.tokens.$post({ json })
-    if (!res.ok) {
-      toast.error('Failed to add token')
-      return
-    }
-
-    tokens.refetch()
-    toast.success('Token added')
+    toast.promise(promise, {
+      loading: 'Adding token...',
+      success: () => {
+        tokens.refetch()
+        return 'Token added'
+      },
+      error: 'Failed to add token',
+    })
   }
 
   return (
@@ -56,14 +58,16 @@ export function TokenCard() {
         <Button
           variant="secondary"
           onClick={async () => {
-            const res = await honoClient.setup.tokens.$post()
-            if (!res.ok) {
-              toast.error('Error adding tokens')
-              return
-            }
+            const promise = honoClient.setup.tokens.$post()
 
-            toast.success('Added default tokens')
-            tokens.refetch()
+            toast.promise(promise, {
+              loading: 'Adding default tokens...',
+              success: () => {
+                tokens.refetch()
+                return 'Added default tokens'
+              },
+              error: 'Failed to add default tokens',
+            })
           }}
         >
           Add Default Tokens
@@ -94,6 +98,7 @@ export function TokenCard() {
                 toast.promise(promise, {
                   loading: 'Deleting token...',
                   success: () => {
+                    refetchBalances()
                     tokens.refetch()
                     return 'Token deleted'
                   },
