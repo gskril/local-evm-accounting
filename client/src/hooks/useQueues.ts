@@ -11,10 +11,11 @@ export function useQueues() {
       const res = await fetch(`${SERVER_URL}/dashboard/api/queues`)
       const data = (await res.json()) as GetQueuesResponse
 
-      const [completed, waiting, active] = [
+      const [completed, waiting, active, failed] = [
         'completed',
         'waiting',
         'active',
+        'failed',
       ].map((status) =>
         data.queues.reduce(
           (acc, queue) =>
@@ -25,6 +26,7 @@ export function useQueues() {
 
       return {
         completed,
+        failed,
         inProgress: active + waiting,
       }
     },

@@ -18,6 +18,10 @@ const links = [
     label: 'Chains',
     to: '/chains',
   },
+  {
+    label: 'Tokens',
+    to: '/tokens',
+  },
 ]
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
