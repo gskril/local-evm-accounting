@@ -1,8 +1,12 @@
+import { VariantProps } from 'class-variance-authority'
 import { Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
-import { isAddress } from 'viem/utils'
+import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
+import { honoClient, useAccounts, useBalances } from '../hooks/useHono'
+import { Button, buttonVariants } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import {
   Dialog,
   DialogContent,
@@ -10,11 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-
-import { honoClient, useAccounts, useBalances } from '../hooks/useHono'
-import { Button } from './ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
+} from './ui/dialog'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 
@@ -22,26 +22,13 @@ export function AccountCard() {
   const accounts = useAccounts()
   const { refetch: refetchBalances } = useBalances()
 
-  async function handleAddAccount(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const address = formData.get('address') as string
-    const promise = honoClient.accounts.$post({ json: { address } })
-
-    toast.promise(promise, {
-      loading: 'Adding account...',
-      success: () => {
-        accounts.refetch()
-        return 'Account added'
-      },
-      error: 'Failed to add account',
-    })
-  }
-
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex items-center justify-between gap-2">
         <CardTitle>Accounts</CardTitle>
+        <div className="flex gap-2">
+          <AccountDialog prompt="Add" />
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {accounts.data?.map((account) => (
@@ -55,7 +42,12 @@ export function AccountCard() {
             </div>
 
             <div className="flex gap-2">
-              <AccountDialog address={account.address} />
+              <AccountDialog
+                address={account.address}
+                prompt="Edit"
+                size="icon"
+                variant="outline"
+              />
 
               <Button
                 variant="outline"
@@ -82,35 +74,32 @@ export function AccountCard() {
           </div>
         ))}
       </CardContent>
-      <CardFooter>
-        <form onSubmit={handleAddAccount} className="flex w-full gap-2">
-          <Input
-            name="address"
-            placeholder="Enter an address or ENS name"
-            autoComplete="off"
-            data-1p-ignore
-          />
-          <Button type="submit">Add Account</Button>
-        </form>
-      </CardFooter>
     </Card>
   )
 }
 
 const addAccountSchema = zfd.formData({
-  name: zfd.text(),
-  address: zfd.text().refine(isAddress),
+  name: zfd.text(z.string().optional()),
+  addressOrName: zfd.text(),
 })
 
-function AccountDialog({ address }: { address: string }) {
+function AccountDialog({
+  address,
+  prompt,
+  ...buttonProps
+}: {
+  address?: string
+  prompt: 'Add' | 'Edit'
+} & VariantProps<typeof buttonVariants>) {
   const accounts = useAccounts()
   const selectedAccount = accounts.data?.find(
     (account) => account.address === address
   )
 
-  async function handleEditAccount(e: React.FormEvent<HTMLFormElement>) {
+  async function handleAddAccount(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.target as HTMLFormElement)
+    console.log(formData.get('name'))
     const safeParse = addAccountSchema.safeParse(formData)
 
     if (safeParse.error) {
@@ -122,34 +111,39 @@ function AccountDialog({ address }: { address: string }) {
     const promise = honoClient.accounts.$post({ json })
 
     toast.promise(promise, {
-      loading: 'Updating account...',
+      loading: `${prompt}ing account...`,
       success: () => {
         accounts.refetch()
-        return 'Account updated'
+        return `${prompt}ed account`
       },
-      error: 'Failed to update account',
+      error: `Failed to ${prompt.toLowerCase()} account`,
     })
   }
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Pencil />
+        <Button {...buttonProps}>
+          {buttonProps.size === 'icon' ? <Pencil /> : prompt}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Account</DialogTitle>
+          <DialogTitle>{prompt} Account</DialogTitle>
         </DialogHeader>
 
         <form
           id="account"
-          onSubmit={handleEditAccount}
+          onSubmit={handleAddAccount}
           className="flex flex-col gap-4"
         >
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Account name</Label>
+            <Label htmlFor="name" className="gap-1">
+              Name{' '}
+              <span className="text-muted-foreground text-xs leading-none">
+                (leave blank if using ENS below)
+              </span>
+            </Label>
             <Input
               name="name"
               placeholder="My Account"
@@ -160,11 +154,13 @@ function AccountDialog({ address }: { address: string }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="addressOrName">Address or ENS name</Label>
             <Input
-              name="address"
+              name="addressOrName"
               placeholder="0x1234567890123456789012345678901234567890"
               defaultValue={selectedAccount?.address}
+              autoComplete="off"
+              data-1p-ignore
             />
           </div>
         </form>

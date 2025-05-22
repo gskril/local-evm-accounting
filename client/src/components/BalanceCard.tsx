@@ -1,11 +1,10 @@
 import { toast } from 'sonner'
 
-import { useCurrency } from '@/hooks/useCurrency'
-import { toFixed } from '@/lib/utils'
-
+import { useCurrency } from '../hooks/useCurrency'
 import { honoClient, useBalances, useFiat } from '../hooks/useHono'
+import { toFixed } from '../lib/utils'
 import { Button } from './ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
 export function BalanceCard() {
   const balances = useBalances()
@@ -30,16 +29,19 @@ export function BalanceCard() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex items-center justify-between gap-2">
         <CardTitle>
           Aggregated Balances{' '}
-          {balances.data?.totalEthValue && fiat && currency && (
+          {!!balances.data?.totalEthValue && fiat && currency && (
             <span className="text-muted-foreground text-sm">
               ({round(balances.data.totalEthValue / fiat.getRate(currency))}{' '}
               {currency})
             </span>
           )}
         </CardTitle>
+        <form onSubmit={handleSubmit}>
+          <Button type="submit">Refresh</Button>
+        </form>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {balances.data?.tokens.map((balance) => (
@@ -57,11 +59,6 @@ export function BalanceCard() {
           </div>
         ))}
       </CardContent>
-      <CardFooter>
-        <form onSubmit={handleSubmit} className="flex w-full gap-2">
-          <Button type="submit">Refetch Balances</Button>
-        </form>
-      </CardFooter>
     </Card>
   )
 }

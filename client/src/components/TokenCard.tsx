@@ -3,6 +3,14 @@ import { toast } from 'sonner'
 import { zfd } from 'zod-form-data'
 
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -12,10 +20,11 @@ import {
 
 import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
 import { Button } from './ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
+import { Label } from './ui/label'
 
-const schema = zfd.formData({
+const addTokenSchema = zfd.formData({
   addressOrName: zfd.text(),
   chainId: zfd.text().refine(Number),
 })
@@ -23,30 +32,6 @@ const schema = zfd.formData({
 export function TokenCard() {
   const tokens = useTokens()
   const { refetch: refetchBalances } = useBalances()
-  const { data: chains } = useChains()
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const safeParse = schema.safeParse(formData)
-
-    if (!safeParse.success) {
-      toast.error('Invalid form data')
-      return
-    }
-
-    const json = safeParse.data
-    const promise = honoClient.tokens.$post({ json })
-
-    toast.promise(promise, {
-      loading: 'Adding token...',
-      success: () => {
-        tokens.refetch()
-        return 'Token added'
-      },
-      error: 'Failed to add token',
-    })
-  }
 
   return (
     <Card>
@@ -54,23 +39,27 @@ export function TokenCard() {
         <CardTitle>
           <span>Tokens</span>
         </CardTitle>
-        <Button
-          variant="secondary"
-          onClick={async () => {
-            const promise = honoClient.setup.tokens.$post()
 
-            toast.promise(promise, {
-              loading: 'Adding default tokens...',
-              success: () => {
-                tokens.refetch()
-                return 'Added default tokens'
-              },
-              error: 'Failed to add default tokens',
-            })
-          }}
-        >
-          Add Default Tokens
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              const promise = honoClient.setup.tokens.$post()
+
+              toast.promise(promise, {
+                loading: 'Adding default tokens...',
+                success: () => {
+                  tokens.refetch()
+                  return 'Added default tokens'
+                },
+                error: 'Failed to add default tokens',
+              })
+            }}
+          >
+            Add Defaults
+          </Button>
+          <TokenDialog />
+        </div>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
@@ -110,33 +99,85 @@ export function TokenCard() {
           </div>
         ))}
       </CardContent>
-
-      <CardFooter>
-        <form onSubmit={handleSubmit} className="flex w-full gap-2">
-          <Select name="chainId">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Chain" />
-            </SelectTrigger>
-            <SelectContent>
-              {chains?.map((chain) => (
-                <SelectItem key={chain.id} value={chain.id.toString()}>
-                  {chain.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Input
-            name="addressOrName"
-            placeholder="Token address"
-            autoComplete="off"
-            data-1p-ignore
-          />
-          <Button type="submit" disabled={!chains}>
-            Add Token
-          </Button>
-        </form>
-      </CardFooter>
     </Card>
+  )
+}
+
+function TokenDialog() {
+  const { data: chains } = useChains()
+  const { refetch: refetchTokens } = useTokens()
+
+  async function handleAddToken(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.target as HTMLFormElement)
+    const safeParse = addTokenSchema.safeParse(formData)
+
+    if (safeParse.error) {
+      toast.error('Invalid form data')
+      return
+    }
+
+    const json = safeParse.data
+    const promise = honoClient.tokens.$post({ json })
+
+    toast.promise(promise, {
+      loading: 'Adding token...',
+      success: () => {
+        refetchTokens()
+        return 'Token added'
+      },
+      error: 'Failed to add token',
+    })
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Add</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Token</DialogTitle>
+        </DialogHeader>
+
+        <form
+          id="token"
+          onSubmit={handleAddToken}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="chainId">Chain</Label>
+            <Select name="chainId">
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chain" />
+              </SelectTrigger>
+              <SelectContent>
+                {chains?.map((chain) => (
+                  <SelectItem key={chain.id} value={chain.id.toString()}>
+                    {chain.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="addressOrName">Address or ENS name</Label>
+            <Input
+              name="addressOrName"
+              placeholder="usdc.tkn.eth"
+              autoComplete="off"
+              data-1p-ignore
+            />
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button type="submit" form="account">
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

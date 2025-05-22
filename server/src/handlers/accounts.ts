@@ -40,7 +40,7 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
 }
 
 const addAccountSchema = z.object({
-  address: z.string(),
+  addressOrName: z.string(),
   name: z.string().optional(),
 })
 
@@ -52,28 +52,28 @@ export async function addAccount(c: Context) {
     return c.json({ error: safeParse.error }, 400)
   }
 
-  let { address, name } = safeParse.data
+  let { addressOrName, name } = safeParse.data
 
-  if (!isAddress(address)) {
+  if (!isAddress(addressOrName)) {
     const client = await getViemClient(1)
-    const ensAddress = await client.getEnsAddress({ name: address })
+    const ensAddress = await client.getEnsAddress({ name: addressOrName })
 
     if (ensAddress) {
       if (!name) {
-        name = address
+        name = addressOrName
       }
 
-      address = ensAddress
+      addressOrName = ensAddress
     } else {
       return c.json({ error: 'Invalid address or ENS name' }, 400)
     }
   }
 
   if (!name) {
-    name = truncateAddress(address as Address)
+    name = truncateAddress(addressOrName as Address)
   }
 
-  const data = { address: address as Address, name }
+  const data = { address: addressOrName as Address, name }
 
   await db
     .insertInto('accounts')
