@@ -14,7 +14,7 @@ type JobData = {
 }
 
 export const erc20Queue = createQueue<JobData>('erc20')
-createWorker<JobData>('erc20', processJob)
+createWorker<JobData>(erc20Queue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)

@@ -12,7 +12,7 @@ type JobData = {
 }
 
 export const ethQueue = createQueue<JobData>('eth')
-createWorker<JobData>('eth', processJob)
+createWorker<JobData>(ethQueue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
