@@ -58,24 +58,28 @@ export function useBalances() {
     queryFn: async () => {
       const res = await honoClient.balances.$get()
       const json = await res.json()
-      // TODO: figure out why honoClient isn't inferring the type
-      return json as unknown as {
-        totalEthValue: number
-        tokens: {
-          token:
-            | {
-                symbol: string
-                id: number
-                address: `0x${string}`
-                chain: number
-                name: string
-                decimals: number
-              }
-            | undefined
-          balance: number
-          ethValue: number
-        }[]
-      }
+
+      const ethValueByChain = json.tokens.reduce(
+        (acc, token) => {
+          const chainId = token.chain.id
+          const chainName = token.chain.name
+
+          const existing = acc.find((item) => item.id === chainId)
+          if (existing) {
+            existing.totalEthValue += token.ethValue
+          } else {
+            acc.push({
+              id: chainId,
+              name: chainName,
+              totalEthValue: token.ethValue,
+            })
+          }
+          return acc
+        },
+        [] as { id: number; name: string; totalEthValue: number }[]
+      )
+
+      return { ...json, ethValueByChain }
     },
   })
 }
@@ -95,6 +99,16 @@ export function useFiat() {
       }
 
       return { array, getRate }
+    },
+  })
+}
+
+export function useEthValuesByAccount() {
+  return useQuery({
+    queryKey: ['ethValuesByAccount'],
+    queryFn: async () => {
+      const res = await honoClient.balances.accounts.$get()
+      return res.json()
     },
   })
 }

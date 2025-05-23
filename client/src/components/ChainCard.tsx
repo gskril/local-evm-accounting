@@ -3,18 +3,18 @@ import { Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
 import { zfd } from 'zod-form-data'
 
+import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
+import { Button, buttonVariants } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-
-import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
-import { Button, buttonVariants } from './ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+} from './ui/dialog'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 
@@ -156,6 +156,19 @@ function ChainDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{prompt} Chain</DialogTitle>
+          <DialogDescription>
+            Only chains that use ETH as the native gas token are supported.
+            Chains that are supported by the{' '}
+            <a
+              href="https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              1inch spot price aggregator
+            </a>{' '}
+            work best.
+          </DialogDescription>
         </DialogHeader>
 
         <form

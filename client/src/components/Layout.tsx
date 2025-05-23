@@ -11,8 +11,8 @@ const links = [
     to: '/',
   },
   {
-    label: 'Balances',
-    to: '/balances',
+    label: 'Portfolio',
+    to: '/portfolio',
   },
   {
     label: 'Accounts',
@@ -54,9 +54,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="flex flex-col gap-2">
           <CurrencySelector />
-          <div className="text-muted-foreground text-sm">
+
+          <span className="text-muted-foreground text-sm">
             {queues.data?.inProgress} jobs in progress
-          </div>
+          </span>
+
+          {!!queues.data?.failed && (
+            <div className="border-destructive bg-destructive/10 text-destructive rounded-md border p-2 text-sm">
+              {queues.data.failed} jobs failed
+            </div>
+          )}
         </div>
       </aside>
 

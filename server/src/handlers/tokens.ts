@@ -63,6 +63,9 @@ export async function addToken(c: Context) {
         { ...contract, functionName: 'symbol' },
         { ...contract, functionName: 'decimals' },
       ],
+      // This is needed when a `chain` object is not provided to viem
+      // Using deployments from https://github.com/mds1/multicall3
+      multicallAddress: '0xca11bde05977b3631167028862be2a173976ca11',
     })
 
     if (!name.result || !symbol.result || !decimals.result) {

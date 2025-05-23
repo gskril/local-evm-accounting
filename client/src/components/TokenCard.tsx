@@ -173,7 +173,7 @@ function TokenDialog() {
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="account">
+          <Button type="submit" form="token">
             Save
           </Button>
         </DialogFooter>
