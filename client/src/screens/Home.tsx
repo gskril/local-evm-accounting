@@ -37,7 +37,7 @@ export function Home() {
           <CardHeader>
             <CardTitle>Chains</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-2">
             {balances.data?.ethValueByChain.map((chain) => (
               <div
                 key={chain.id}
