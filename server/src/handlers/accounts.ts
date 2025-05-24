@@ -42,6 +42,7 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
 const addAccountSchema = z.object({
   addressOrName: z.string(),
   name: z.string().optional(),
+  description: z.string().optional(),
 })
 
 export async function addAccount(c: Context) {
@@ -52,7 +53,7 @@ export async function addAccount(c: Context) {
     return c.json({ error: safeParse.error }, 400)
   }
 
-  let { addressOrName, name } = safeParse.data
+  let { addressOrName, name, description } = safeParse.data
 
   if (!isAddress(addressOrName)) {
     const client = await getViemClient(1)
@@ -73,7 +74,11 @@ export async function addAccount(c: Context) {
     name = truncateAddress(addressOrName as Address)
   }
 
-  const data = { address: addressOrName as Address, name }
+  const data = {
+    address: addressOrName as Address,
+    name,
+    description,
+  }
 
   await db
     .insertInto('accounts')

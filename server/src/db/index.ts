@@ -17,6 +17,7 @@ interface ChainRow {
 interface AccountRow {
   address: Address
   name: string
+  description: string | null
   createdAt: GeneratedAlways<Date>
 }
 

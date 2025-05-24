@@ -17,6 +17,14 @@ import {
 } from './ui/dialog'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table'
 
 export function AccountCard() {
   const accounts = useAccounts()
@@ -31,48 +39,56 @@ export function AccountCard() {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        {accounts.data?.map((account) => (
-          <div
-            key={account.address}
-            className="flex items-center justify-between"
-          >
-            <div>
-              <p>{account.name}</p>
-              <p className="text-muted-foreground text-sm">{account.address}</p>
-            </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {accounts.data?.map((account) => (
+              <TableRow key={account.address}>
+                <TableCell>{account.name}</TableCell>
+                <TableCell>{account.description}</TableCell>
+                <TableCell>{account.address}</TableCell>
 
-            <div className="flex gap-2">
-              <AccountDialog
-                address={account.address}
-                prompt="Edit"
-                size="icon"
-                variant="outline"
-              />
+                <TableCell className="flex justify-end gap-2">
+                  <AccountDialog
+                    address={account.address}
+                    prompt="Edit"
+                    size="icon"
+                    variant="outline"
+                  />
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={async () => {
-                  const promise = honoClient.accounts[':address'].$delete({
-                    param: { address: account.address },
-                  })
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={async () => {
+                      const promise = honoClient.accounts[':address'].$delete({
+                        param: { address: account.address },
+                      })
 
-                  toast.promise(promise, {
-                    loading: 'Deleting account...',
-                    success: () => {
-                      accounts.refetch()
-                      refetchBalances()
-                      return 'Account deleted'
-                    },
-                    error: 'Failed to delete account',
-                  })
-                }}
-              >
-                <Trash />
-              </Button>
-            </div>
-          </div>
-        ))}
+                      toast.promise(promise, {
+                        loading: 'Deleting account...',
+                        success: () => {
+                          accounts.refetch()
+                          refetchBalances()
+                          return 'Account deleted'
+                        },
+                        error: 'Failed to delete account',
+                      })
+                    }}
+                  >
+                    <Trash />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )
@@ -80,6 +96,7 @@ export function AccountCard() {
 
 const addAccountSchema = zfd.formData({
   name: zfd.text(z.string().optional()),
+  description: zfd.text(z.string().optional()),
   addressOrName: zfd.text(),
 })
 
@@ -116,7 +133,10 @@ function AccountDialog({
         accounts.refetch()
         return `${prompt}ed account`
       },
-      error: `Failed to ${prompt.toLowerCase()} account`,
+      error: {
+        message: `Failed to ${prompt.toLowerCase()} account`,
+        description: 'Be sure to use the checksummed address',
+      },
     })
   }
 
@@ -150,6 +170,20 @@ function AccountDialog({
               autoComplete="off"
               data-1p-ignore
               defaultValue={selectedAccount?.name}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="description">
+              Description{' '}
+              <span className="text-muted-foreground text-xs leading-none">
+                (optional)
+              </span>
+            </Label>
+            <Input
+              name="description"
+              placeholder="My Account"
+              autoComplete="off"
             />
           </div>
 

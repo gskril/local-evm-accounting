@@ -15,7 +15,8 @@ export const up = async (db: Kysely<any>) => {
     .createTable('accounts')
     .ifNotExists()
     .addColumn('address', 'text', (col) => col.primaryKey())
-    .addColumn('name', 'text')
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text')
     .addColumn('createdAt', 'timestamptz', (col) =>
       col.notNull().defaultTo(sql`current_timestamp`)
     )

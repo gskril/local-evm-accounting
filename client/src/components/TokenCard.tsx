@@ -17,6 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
 import { Button } from './ui/button'
@@ -63,41 +71,54 @@ export function TokenCard() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
-        {tokens.data?.map((token) => (
-          <div
-            key={`${token.chain?.id}:${token.address}`}
-            className="flex items-center justify-between"
-          >
-            <div>
-              <p>{token.name}</p>
-              <p className="text-muted-foreground text-sm">
-                {token.chain?.name} - {token.address}
-              </p>
-            </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-40 min-w-34">Chain</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tokens.data?.map((token) => (
+              <TableRow key={`${token.chain?.id}:${token.address}`}>
+                <TableCell>{token.chain?.name}</TableCell>
+                <TableCell>
+                  {token.name} ({token.symbol})
+                </TableCell>
+                <TableCell>{token.address}</TableCell>
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={async () => {
-                const promise = honoClient.tokens.$delete({
-                  json: { address: token.address, chainId: token.chain!.id },
-                })
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={async () => {
+                      const promise = honoClient.tokens.$delete({
+                        json: {
+                          address: token.address,
+                          chainId: token.chain!.id,
+                        },
+                      })
 
-                toast.promise(promise, {
-                  loading: 'Deleting token...',
-                  success: () => {
-                    refetchBalances()
-                    tokens.refetch()
-                    return 'Token deleted'
-                  },
-                  error: 'Failed to delete token',
-                })
-              }}
-            >
-              <Trash />
-            </Button>
-          </div>
-        ))}
+                      toast.promise(promise, {
+                        loading: 'Deleting token...',
+                        success: () => {
+                          refetchBalances()
+                          tokens.refetch()
+                          return 'Token deleted'
+                        },
+                        error: 'Failed to delete token',
+                      })
+                    }}
+                  >
+                    <Trash />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )

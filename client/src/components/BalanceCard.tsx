@@ -34,9 +34,7 @@ export function BalanceCard() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-muted-foreground w-40 min-w-34">
-                Chain
-              </TableHead>
+              <TableHead className="w-40 min-w-34">Chain</TableHead>
               <TableHead className="min-w-56">Token</TableHead>
               <TableHead className="w-44 min-w-40">Price</TableHead>
               <TableHead className="w-44 min-w-40">Amount</TableHead>
@@ -46,9 +44,7 @@ export function BalanceCard() {
           <TableBody>
             {balances.data?.tokens.map((token) => (
               <TableRow key={token.id}>
-                <TableCell className="text-muted-foreground text-xs">
-                  {token.chain.name}
-                </TableCell>
+                <TableCell>{token.chain.name}</TableCell>
                 <TableCell title={token.symbol}>{token.name} </TableCell>
                 <TableCell>
                   {fiat &&

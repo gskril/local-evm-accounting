@@ -17,10 +17,17 @@ import {
 } from './ui/dialog'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table'
 
 const addChainSchema = zfd.formData({
   name: zfd.text(),
-  id: zfd.numeric(),
   rpcUrl: zfd.text().refine((value) => {
     try {
       new URL(value)
@@ -35,6 +42,23 @@ export function ChainCard() {
   const chains = useChains()
   const { refetch: refetchTokens } = useTokens()
   const { refetch: refetchBalances } = useBalances()
+
+  function handleDeleteChain(chainId: number) {
+    const promise = honoClient.chains[':id'].$delete({
+      param: { id: chainId.toString() },
+    })
+
+    toast.promise(promise, {
+      loading: 'Deleting chain...',
+      success: () => {
+        chains.refetch()
+        refetchTokens()
+        refetchBalances()
+        return 'Chain deleted'
+      },
+      error: 'Failed to delete chain',
+    })
+  }
 
   return (
     <Card>
@@ -65,48 +89,48 @@ export function ChainCard() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
-        {chains.data?.map((chain) => (
-          <div key={chain.id} className="flex items-center justify-between">
-            <div>
-              <p>{chain.name}</p>
-              <p className="text-muted-foreground text-sm">
-                {chain.id} - {chain.rpcUrl}
-              </p>
-            </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>RPC URL</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {chains.data?.map((chain) => (
+              <TableRow key={chain.id}>
+                <TableCell>{chain.id}</TableCell>
+                <TableCell>{chain.name}</TableCell>
+                <TableCell>{chain.rpcUrl}</TableCell>
 
-            <div className="flex gap-2">
-              <ChainDialog
-                prompt="Edit"
-                chainId={chain.id}
-                variant="outline"
-                size="icon"
-              />
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <ChainDialog
+                      prompt="Edit"
+                      chainId={chain.id}
+                      variant="outline"
+                      size="icon"
+                    />
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={async () => {
-                  const promise = honoClient.chains[':id'].$delete({
-                    param: { id: chain.id.toString() },
-                  })
-
-                  toast.promise(promise, {
-                    loading: 'Deleting chain...',
-                    success: () => {
-                      chains.refetch()
-                      refetchTokens()
-                      refetchBalances()
-                      return 'Chain deleted'
-                    },
-                    error: 'Failed to delete chain',
-                  })
-                }}
-              >
-                <Trash />
-              </Button>
-            </div>
-          </div>
-        ))}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDeleteChain(chain.id)}
+                    >
+                      <Trash />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {/* <TableCell className="font-medium">INV001</TableCell>
+              <TableCell>Paid</TableCell>
+              <TableCell>Credit Card</TableCell>
+              <TableCell className="text-right">$250.00</TableCell> */}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )
@@ -180,7 +204,7 @@ function ChainDialog({
           className="flex flex-col gap-4"
         >
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Chain name</Label>
+            <Label htmlFor="name">Name</Label>
             <Input
               name="name"
               placeholder="Ethereum"
@@ -188,11 +212,6 @@ function ChainDialog({
               data-1p-ignore
               defaultValue={selectedChain?.name}
             />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="id">Chain ID</Label>
-            <Input name="id" placeholder="1" defaultValue={selectedChain?.id} />
           </div>
 
           <div className="flex flex-col gap-1.5">

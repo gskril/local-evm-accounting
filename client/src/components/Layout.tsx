@@ -17,12 +17,12 @@ const links = [
     to: '/portfolio',
   },
   {
-    label: 'Accounts',
-    to: '/accounts',
-  },
-  {
     label: 'Chains',
     to: '/chains',
+  },
+  {
+    label: 'Accounts',
+    to: '/accounts',
   },
   {
     label: 'Tokens',

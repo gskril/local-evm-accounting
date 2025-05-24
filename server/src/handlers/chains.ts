@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { db } from '../db'
 
 const schema = z.object({
-  id: z.number(),
   name: z.string(),
   rpcUrl: z.string(),
 })
@@ -21,16 +20,23 @@ export async function addChain(c: Context) {
   const client = createPublicClient({
     transport: http(safeParse.data.rpcUrl),
   })
+  let chainId: number | null = null
 
   try {
-    await client.getBlockNumber()
-  } catch {
-    return c.json({ error: 'Failed to connect to RPC' }, 500)
+    chainId = await client.getChainId()
+  } catch (error) {
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to connect to RPC',
+      },
+      400
+    )
   }
 
   await db
     .insertInto('chains')
-    .values(safeParse.data)
+    .values({ ...safeParse.data, id: chainId })
     .onConflict((oc) => oc.columns(['id']).doUpdateSet(safeParse.data))
     .execute()
 
