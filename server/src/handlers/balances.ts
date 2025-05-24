@@ -76,6 +76,7 @@ export async function getBalances(c: Context) {
   const enhancedBalances = balances.map((b) => ({
     balance: b.balance,
     ethValue: b.ethValue,
+    ethValuePerToken: b.ethValue / b.balance,
     ...tokensWithChain.find((t) => t.id === b.token)!,
   }))
 

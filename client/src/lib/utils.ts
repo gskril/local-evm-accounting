@@ -22,13 +22,18 @@ export function toFixed(num: number, maxDecimals: number) {
   }
 }
 
-export function formatCurrency(num: number, currency: string) {
-  if (currency === 'ETH') {
+export function formatCurrency(num: number, currency: string | undefined) {
+  try {
+    if (currency === 'ETH' || currency === undefined) {
+      throw new Error()
+    }
+
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(num)
+  } catch {
+    // Fallback to ETH
     return `Ξ${toFixed(num, 4)}`
   }
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(num)
 }

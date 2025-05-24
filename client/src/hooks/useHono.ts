@@ -95,7 +95,8 @@ export function useFiat() {
       const array = await res.json()
 
       function getRate(key: string | undefined) {
-        return array.find((item) => item.label === key)?.rateToEth ?? 0
+        // Fallback to 1 means falling back to ETH
+        return array.find((item) => item.label === key)?.rateToEth ?? 1
       }
 
       return { array, getRate }

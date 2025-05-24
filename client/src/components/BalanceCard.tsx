@@ -34,12 +34,13 @@ export function BalanceCard() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-muted-foreground w-1/6">
+              <TableHead className="text-muted-foreground w-40 min-w-34">
                 Chain
               </TableHead>
-              <TableHead className="w-1/2">Token</TableHead>
-              <TableHead className="w-1/6">Amount</TableHead>
-              <TableHead className="w-1/6 text-right">Value</TableHead>
+              <TableHead className="min-w-56">Token</TableHead>
+              <TableHead className="w-44 min-w-40">Price</TableHead>
+              <TableHead className="w-44 min-w-40">Amount</TableHead>
+              <TableHead className="w-32 min-w-28 text-right">Value</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -49,8 +50,21 @@ export function BalanceCard() {
                   {token.chain.name}
                 </TableCell>
                 <TableCell title={token.symbol}>{token.name} </TableCell>
+                <TableCell>
+                  {fiat &&
+                    formatCurrency(
+                      token.ethValuePerToken / fiat.getRate(currency),
+                      currency
+                    )}
+                </TableCell>
                 <TableCell>{toFixed(token.balance, 4)}</TableCell>
-                <TableCell className="text-right">
+                <TableCell
+                  className="text-right"
+                  title={`${toFixed(
+                    (token.ethValue / balances.data?.totalEthValue) * 100,
+                    2
+                  )}% of net value`}
+                >
                   {!!token.ethValue &&
                     fiat &&
                     currency &&
@@ -64,7 +78,7 @@ export function BalanceCard() {
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
+              <TableCell colSpan={4}>Total</TableCell>
               <TableCell className="text-right">
                 {fiat &&
                   currency &&
