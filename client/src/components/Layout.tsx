@@ -34,8 +34,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const queues = useQueues()
 
   return (
-    <div className="grid grid-cols-[15rem_1fr]">
-      <aside className="sticky top-0 flex h-svh flex-col justify-between border-r p-6">
+    <div className="grid grid-cols-[10rem_1fr] lg:grid-cols-[15rem_1fr]">
+      <aside className="sticky top-0 flex h-svh flex-col justify-between border-r p-2 lg:p-6">
         <nav>
           <ul>
             {links.map((link) => (
@@ -74,7 +74,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex min-h-svh w-full flex-col gap-6 bg-neutral-50 p-6">
+      <main className="flex min-h-svh w-full max-w-full flex-col gap-4 bg-neutral-50 p-4 lg:gap-6 lg:p-6">
         {children}
       </main>
     </div>
