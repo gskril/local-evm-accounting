@@ -1,5 +1,7 @@
+import { ArrowUpRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
+import { SERVER_URL } from '@/hooks/useHono'
 import { useQueues } from '@/hooks/useQueues'
 import { cn } from '@/lib/utils'
 
@@ -60,9 +62,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </span>
 
           {!!queues.data?.failed && (
-            <div className="border-destructive bg-destructive/10 text-destructive rounded-md border p-2 text-sm">
-              {queues.data.failed} jobs failed
-            </div>
+            <a
+              href={`${SERVER_URL}/dashboard`}
+              target="_blank"
+              className="border-destructive bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border p-2 text-sm"
+            >
+              {queues.data.failed} jobs failed{' '}
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
           )}
         </div>
       </aside>

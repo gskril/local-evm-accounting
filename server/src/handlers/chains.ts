@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { createPublicClient, http } from 'viem'
 import { z } from 'zod'
 
 import { db } from '../db'
@@ -14,6 +15,17 @@ export async function addChain(c: Context) {
 
   if (!safeParse.success) {
     return c.json(safeParse.error, 400)
+  }
+
+  // Test RPC
+  const client = createPublicClient({
+    transport: http(safeParse.data.rpcUrl),
+  })
+
+  try {
+    await client.getBlockNumber()
+  } catch {
+    return c.json({ error: 'Failed to connect to RPC' }, 500)
   }
 
   await db

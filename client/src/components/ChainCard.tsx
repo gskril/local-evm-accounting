@@ -142,7 +142,10 @@ function ChainDialog({
         chains.refetch()
         return 'Chain added'
       },
-      error: 'Failed to add chain',
+      error: {
+        message: 'Failed to add chain',
+        description: 'Make sure the RPC URL is working',
+      },
     })
   }
 
