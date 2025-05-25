@@ -153,3 +153,14 @@ export async function getEthValueByAccount(c: Context) {
 
   return c.json(data)
 }
+
+export async function getNetworthTimeSeries(c: Context) {
+  const networth = await db
+    .selectFrom('networth')
+    .selectAll()
+    .limit(60)
+    .orderBy('timestamp', 'desc')
+    .execute()
+
+  return c.json(networth.reverse())
+}

@@ -25,8 +25,8 @@ serverAdapter.setBasePath(basePath)
 // @ts-ignore
 app.route(basePath, serverAdapter.registerPlugin())
 
-// Networth cron job, runs every hour
-new Cron('0 * * * *', async () => {
+// Networth cron job, runs every 12 hours
+new Cron('0 */12 * * *', async () => {
   const balances = (await db
     .selectFrom('balances')
     .select([db.fn.sum('ethValue').as('ethValue')])

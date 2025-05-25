@@ -11,6 +11,7 @@ import {
   fetchBalances,
   getBalances,
   getEthValueByAccount,
+  getNetworthTimeSeries,
 } from './handlers/balances'
 import { addChain, deleteChain, getChains } from './handlers/chains'
 import { getFiat } from './handlers/fiat'
@@ -27,6 +28,7 @@ export const routes = api
   .get('/chains', (c) => getChains(c))
   .get('/balances', (c) => getBalances(c))
   .get('/balances/accounts', (c) => getEthValueByAccount(c))
+  .get('/balances/networth', (c) => getNetworthTimeSeries(c))
   .get('/tokens', (c) => getTokens(c))
   .get('/fiat', (c) => getFiat(c))
   .post('/accounts', (c) => addAccount(c))

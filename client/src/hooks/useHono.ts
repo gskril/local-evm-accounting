@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { hcWithType } from 'server/hc'
 
 import { Hex } from '../lib/types'
+import { useCurrency } from './useCurrency'
 import { useQueues } from './useQueues'
 
 export const SERVER_URL =
@@ -110,6 +111,24 @@ export function useEthValuesByAccount() {
     queryFn: async () => {
       const res = await honoClient.balances.accounts.$get()
       return res.json()
+    },
+  })
+}
+
+export function useNetworthTimeSeries() {
+  const { currency } = useCurrency()
+  const { data: fiat } = useFiat()
+
+  return useQuery({
+    queryKey: ['networthTimeSeries', currency, fiat],
+    queryFn: async () => {
+      const res = await honoClient.balances.networth.$get()
+      const json = await res.json()
+
+      return json.map((item) => ({
+        ...item,
+        value: item.ethValue / (fiat?.getRate(currency) ?? 1),
+      }))
     },
   })
 }

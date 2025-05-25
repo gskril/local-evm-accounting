@@ -1,14 +1,38 @@
+import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
+
 import { RefreshBalancesButton } from '@/components/BalanceCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { useCurrency } from '@/hooks/useCurrency'
-import { useBalances, useEthValuesByAccount, useFiat } from '@/hooks/useHono'
+import {
+  useBalances,
+  useEthValuesByAccount,
+  useFiat,
+  useNetworthTimeSeries,
+} from '@/hooks/useHono'
 import { formatCurrency } from '@/lib/utils'
+
+const chartConfig = {
+  value: {
+    label: 'Value',
+  },
+  desktop: {
+    label: 'Desktop',
+    color: 'var(--card-foreground)',
+  },
+} satisfies ChartConfig
 
 export function Home() {
   const balances = useBalances()
   const { currency } = useCurrency()
   const { data: fiat } = useFiat()
   const ethValuesByAccount = useEthValuesByAccount()
+  const { data: networthTimeSeries } = useNetworthTimeSeries()
 
   return (
     <>
@@ -18,17 +42,74 @@ export function Home() {
       </div>
 
       <Card>
-        <CardContent className="flex flex-col items-center justify-center gap-2">
-          {fiat && currency && (
-            <h1 className="text-5xl font-semibold">
-              {formatCurrency(
-                (balances.data?.totalEthValue ?? 0) / fiat.getRate(currency),
-                currency
-              )}
-            </h1>
-          )}
+        <CardContent className="flex items-center justify-center gap-6">
+          <div className="flex flex-col items-center justify-center gap-2">
+            {fiat && currency && (
+              <h1 className="text-5xl font-semibold">
+                {formatCurrency(
+                  (balances.data?.totalEthValue ?? 0) / fiat.getRate(currency),
+                  currency
+                )}
+              </h1>
+            )}
 
-          <span className="text-muted-foreground text-sm">Total value</span>
+            <span className="text-muted-foreground text-sm">Total value</span>
+          </div>
+
+          <div className="relative hidden w-full lg:block">
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-[250px] w-full"
+            >
+              <LineChart
+                accessibilityLayer
+                data={networthTimeSeries}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="timestamp"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={36}
+                  tickFormatter={(value) => {
+                    const date = new Date(value)
+                    return date.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  }}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      indicator="line"
+                      labelFormatter={(value) => {
+                        const date = new Date(value)
+                        return date.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: 'numeric',
+                        })
+                      }}
+                    />
+                  }
+                />
+                <Line
+                  dataKey="value"
+                  type="linear"
+                  stroke="var(--color-desktop)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ChartContainer>
+          </div>
         </CardContent>
       </Card>
 
