@@ -20,7 +20,7 @@ For more complex portfolio tracking and tax preparation, use [Rotki](https://rot
 
 ### Extras
 
-- [ ] Show portfolio value over time (cron to refresh balances and store time series data)
+- [x] Show portfolio value over time (cron to refresh balances and store time series data)
 - [ ] Trigger notifications when balances change
 
 ## Getting Started
