@@ -38,11 +38,17 @@ interface BalanceRow {
   updatedAt: ColumnType<Date, never, string | undefined>
 }
 
+interface NetworthRow {
+  timestamp: ColumnType<Date, never, string>
+  ethValue: number
+}
+
 export type Tables = {
   accounts: AccountRow
   chains: ChainRow
   tokens: TokenRow
   balances: BalanceRow
+  networth: NetworthRow
 }
 
 export const db = new Kysely<Tables>({

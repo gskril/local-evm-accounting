@@ -4,7 +4,12 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
-import { honoClient, useAccounts, useBalances } from '../hooks/useHono'
+import {
+  honoClient,
+  useAccounts,
+  useBalances,
+  useEthValuesByAccount,
+} from '../hooks/useHono'
 import { Button, buttonVariants } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import {
@@ -29,6 +34,7 @@ import {
 export function AccountCard() {
   const accounts = useAccounts()
   const { refetch: refetchBalances } = useBalances()
+  const { refetch: refetchBalancesByAccount } = useEthValuesByAccount()
 
   return (
     <Card>
@@ -76,6 +82,7 @@ export function AccountCard() {
                         success: () => {
                           accounts.refetch()
                           refetchBalances()
+                          refetchBalancesByAccount()
                           return 'Account deleted'
                         },
                         error: 'Failed to delete account',
@@ -116,7 +123,6 @@ function AccountDialog({
   async function handleAddAccount(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.target as HTMLFormElement)
-    console.log(formData.get('name'))
     const safeParse = addAccountSchema.safeParse(formData)
 
     if (safeParse.error) {

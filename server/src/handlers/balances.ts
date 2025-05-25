@@ -5,21 +5,24 @@ import { db } from '../db'
 import { erc20Queue } from '../queues/workers/erc20'
 import { ethQueue } from '../queues/workers/eth'
 
-export async function fetchBalances(c: Context) {
+export async function addCheckBalanceTasksToQueue() {
   const accounts = await db.selectFrom('accounts').selectAll().execute()
   const tokens = await db.selectFrom('tokens').selectAll().execute()
+
+  const ethTasks = []
+  const erc20Tasks = []
 
   for (const account of accounts) {
     for (const token of tokens) {
       if (token.address === zeroAddress) {
         // Native ETH
-        await ethQueue.add(`${account.address}-${token.chain}`, {
+        ethTasks.push({
           address: account.address,
           chainId: token.chain,
         })
       } else {
         // ERC20s
-        await erc20Queue.add(`${account.address}-${token.chain}`, {
+        erc20Tasks.push({
           token: token.address,
           owner: account.address,
           chainId: token.chain,
@@ -28,6 +31,23 @@ export async function fetchBalances(c: Context) {
     }
   }
 
+  await ethQueue.addBulk(
+    ethTasks.map((task) => ({
+      name: `${task.chainId}:${task.address}`,
+      data: task,
+    }))
+  )
+
+  await erc20Queue.addBulk(
+    erc20Tasks.map((task) => ({
+      name: `${task.chainId}:${task.owner}:${task.token}`,
+      data: task,
+    }))
+  )
+}
+
+export async function fetchBalances(c: Context) {
+  await addCheckBalanceTasksToQueue()
   return c.json({ success: true })
 }
 

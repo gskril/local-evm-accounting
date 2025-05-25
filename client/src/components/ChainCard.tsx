@@ -3,7 +3,13 @@ import { Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
 import { zfd } from 'zod-form-data'
 
-import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
+import {
+  honoClient,
+  useBalances,
+  useChains,
+  useEthValuesByAccount,
+  useTokens,
+} from '../hooks/useHono'
 import { Button, buttonVariants } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import {
@@ -42,6 +48,7 @@ export function ChainCard() {
   const chains = useChains()
   const { refetch: refetchTokens } = useTokens()
   const { refetch: refetchBalances } = useBalances()
+  const { refetch: refetchBalancesByAccount } = useEthValuesByAccount()
 
   function handleDeleteChain(chainId: number) {
     const promise = honoClient.chains[':id'].$delete({
@@ -54,6 +61,7 @@ export function ChainCard() {
         chains.refetch()
         refetchTokens()
         refetchBalances()
+        refetchBalancesByAccount()
         return 'Chain deleted'
       },
       error: 'Failed to delete chain',

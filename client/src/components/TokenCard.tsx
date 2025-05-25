@@ -26,7 +26,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { honoClient, useBalances, useChains, useTokens } from '../hooks/useHono'
+import {
+  honoClient,
+  useBalances,
+  useChains,
+  useEthValuesByAccount,
+  useTokens,
+} from '../hooks/useHono'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
@@ -40,6 +46,7 @@ const addTokenSchema = zfd.formData({
 export function TokenCard() {
   const tokens = useTokens()
   const { refetch: refetchBalances } = useBalances()
+  const { refetch: refetchBalancesByAccount } = useEthValuesByAccount()
 
   return (
     <Card>
@@ -104,8 +111,9 @@ export function TokenCard() {
                       toast.promise(promise, {
                         loading: 'Deleting token...',
                         success: () => {
-                          refetchBalances()
                           tokens.refetch()
+                          refetchBalances()
+                          refetchBalancesByAccount()
                           return 'Token deleted'
                         },
                         error: 'Failed to delete token',
