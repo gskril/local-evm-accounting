@@ -1,42 +1,46 @@
-# Build stage
+# Use the official Bun image
 FROM oven/bun:1 as builder
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lock ./
-COPY client/package.json client/bun.lock ./client/
-COPY server/package.json server/bun.lock ./server/
+COPY package.json .
+COPY client/package.json ./client/
+COPY server/package.json ./server/
 
-# Install dependencies without running postinstall scripts
-RUN bun install --no-scripts
-
-# Copy the rest of the application
+# Copy source code first
 COPY . .
 
-# Build packages
+# Install dependencies (now that source code is available)
+RUN bun install
+
+# Build server first
+WORKDIR /app/server
 RUN bun run build
 
-# Production stage
-FROM oven/bun:1-slim
+# Build client
+WORKDIR /app/client
+RUN bun run build
 
-# Set working directory
+# Start a new stage for the runtime
+FROM oven/bun:1
+
 WORKDIR /app
 
-# Copy only necessary files from builder
-COPY --from=builder /app/package.json /app/bun.lock ./
-COPY --from=builder /app/client/package.json /app/client/bun.lock ./client/
-COPY --from=builder /app/server/package.json /app/server/bun.lock ./server/
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
+# Copy built artifacts and dependencies
 COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/client/dist ./client/dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/client/node_modules ./client/node_modules
+COPY --from=builder /app/server/node_modules ./server/node_modules
+COPY package.json .
+COPY client/package.json ./client/
+COPY server/package.json ./server/
 
-# Install production dependencies only
-RUN bun install --production --no-scripts
+# Expose ports for client and server
+EXPOSE 3000 4173
 
-# Expose ports
-EXPOSE 3000 5173
+# Start both applications using concurrently
+CMD ["bun", "run", "start"]
 
-# Start the application
-CMD ["bun", "run", "start"] 

@@ -9,6 +9,9 @@
     "build:client": "cd client && bun run build",
     "build:server": "cd server && bun run build",
     "build": "bun run build:client && bun run build:server",
+    "start:client": "cd client && bun run start",
+    "start:server": "cd server && bun run start",
+    "start": "concurrently \"bun run start:server\" \"bun run start:client\"",
     "postinstall": "bun run build:server"
   },
   "workspaces": [
