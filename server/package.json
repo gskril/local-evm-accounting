@@ -5,7 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "bun run ./dist/db/migrator.js && bun run dist/index.js",
+    "start": "bun run dist/index.js",
     "dev": "concurrently \"bun run --hot src/index.ts\" \"tsc --watch\"",
     "migrate": "bun run ./src/db/migrator.ts"
   },
