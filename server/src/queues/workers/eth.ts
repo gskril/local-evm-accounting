@@ -12,7 +12,7 @@ type JobData = {
 }
 
 export const ethQueue = createQueue<JobData>('eth')
-createWorker<JobData>('eth', processJob)
+createWorker<JobData>(ethQueue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
@@ -35,7 +35,7 @@ async function processJob(job: Job<JobData>) {
     token: token.id,
     owner: job.data.address,
     balance: Number(formatEther(balance)),
-    ethValue: 0,
+    ethValue: Number(formatEther(balance)),
   }
 
   await db

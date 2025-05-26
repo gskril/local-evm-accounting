@@ -28,11 +28,6 @@ export const defaultChains: Insertable<Tables['chains']>[] = [
     name: 'Arbitrum',
     rpcUrl: 'https://arbitrum-one-rpc.publicnode.com',
   },
-  {
-    id: 137,
-    name: 'Polygon',
-    rpcUrl: 'https://polygon-bor-rpc.publicnode.com',
-  },
 ]
 
 // TODO: Optimize this so we don't read from Postgres every call
@@ -50,6 +45,8 @@ export async function getViemClient(chainId: number) {
   return createPublicClient({
     // Viem doesn't technically need the chain info, but we'll provide it for mainnet to make ENS resolution easier
     chain: chainId === 1 ? mainnet : undefined,
-    transport: http(chain.rpcUrl),
+    transport: http(chain.rpcUrl, {
+      batch: true,
+    }),
   })
 }

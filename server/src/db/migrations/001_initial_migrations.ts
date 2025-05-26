@@ -5,7 +5,7 @@ export const up = async (db: Kysely<any>) => {
   await db.schema
     .createTable('chains')
     .ifNotExists()
-    .addColumn('id', 'integer', (col) => col.primaryKey())
+    .addColumn('id', 'integer', (col) => col.notNull().primaryKey())
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('rpcUrl', 'text', (col) => col.notNull())
     .execute()
@@ -14,8 +14,9 @@ export const up = async (db: Kysely<any>) => {
   await db.schema
     .createTable('accounts')
     .ifNotExists()
-    .addColumn('address', 'text', (col) => col.primaryKey())
-    .addColumn('name', 'text')
+    .addColumn('address', 'text', (col) => col.notNull().primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text')
     .addColumn('createdAt', 'timestamptz', (col) =>
       col.notNull().defaultTo(sql`current_timestamp`)
     )
@@ -25,7 +26,9 @@ export const up = async (db: Kysely<any>) => {
   await db.schema
     .createTable('tokens')
     .ifNotExists()
-    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('id', 'integer', (col) =>
+      col.notNull().primaryKey().autoIncrement()
+    )
     .addColumn('address', 'text', (col) => col.notNull())
     .addColumn('chain', 'integer', (col) =>
       col.references('chains.id').onDelete('cascade').notNull()
@@ -52,6 +55,19 @@ export const up = async (db: Kysely<any>) => {
       col.notNull().defaultTo(sql`current_timestamp`)
     )
     .addPrimaryKeyConstraint('balances_pkey', ['token', 'owner'])
+    .execute()
+
+  // NETWORTH
+  await db.schema
+    .createTable('networth')
+    .ifNotExists()
+    .addColumn('timestamp', 'timestamptz', (col) =>
+      col
+        .notNull()
+        .primaryKey()
+        .defaultTo(sql`current_timestamp`)
+    )
+    .addColumn('ethValue', 'integer', (col) => col.notNull())
     .execute()
 }
 

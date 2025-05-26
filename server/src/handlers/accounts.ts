@@ -40,8 +40,9 @@ export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
 }
 
 const addAccountSchema = z.object({
-  address: z.string(),
+  addressOrName: z.string(),
   name: z.string().optional(),
+  description: z.string().optional(),
 })
 
 export async function addAccount(c: Context) {
@@ -52,29 +53,32 @@ export async function addAccount(c: Context) {
     return c.json({ error: safeParse.error }, 400)
   }
 
-  let { address, name } = safeParse.data
+  let { addressOrName, name, description } = safeParse.data
 
-  if (!isAddress(address)) {
+  if (!isAddress(addressOrName)) {
     const client = await getViemClient(1)
-    const ensAddress = await client.getEnsAddress({ name: address })
+    const ensAddress = await client.getEnsAddress({ name: addressOrName })
 
     if (ensAddress) {
       if (!name) {
-        name = address
+        name = addressOrName
       }
 
-      address = ensAddress
+      addressOrName = ensAddress
     } else {
       return c.json({ error: 'Invalid address or ENS name' }, 400)
     }
   }
 
   if (!name) {
-    name = truncateAddress(address as Address)
+    name = truncateAddress(addressOrName as Address)
   }
 
-  const data = { address: address as Address, name }
-  console.log(data)
+  const data = {
+    address: addressOrName as Address,
+    name,
+    description,
+  }
 
   await db
     .insertInto('accounts')
@@ -82,5 +86,16 @@ export async function addAccount(c: Context) {
     .onConflict((oc) => oc.column('address').doUpdateSet(data))
     .execute()
 
+  return c.json({ success: true })
+}
+
+export async function deleteAccount(c: Context) {
+  const address = c.req.param('address')
+
+  if (!isAddress(address)) {
+    return c.json({ error: 'Invalid address' }, 400)
+  }
+
+  await db.deleteFrom('accounts').where('address', '=', address).execute()
   return c.json({ success: true })
 }

@@ -4,6 +4,7 @@ import { type Address, erc20Abi, formatUnits } from 'viem'
 
 import { getViemClient } from '../../chains'
 import { type Tables, db } from '../../db'
+import { getRateToEth } from '../../price'
 import { createQueue, createWorker } from '../bullmq'
 
 type JobData = {
@@ -13,7 +14,7 @@ type JobData = {
 }
 
 export const erc20Queue = createQueue<JobData>('erc20')
-createWorker<JobData>('erc20', processJob)
+createWorker<JobData>(erc20Queue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
@@ -36,11 +37,18 @@ async function processJob(job: Job<JobData>) {
     args: [job.data.owner],
   })
 
+  const formattedBalance = Number(formatUnits(balance, token.decimals))
+  const rateToEth = await getRateToEth({
+    address: job.data.token,
+    chainId: job.data.chainId,
+    decimals: token.decimals,
+  })
+
   const data: Insertable<Tables['balances']> = {
     token: token.id,
     owner: job.data.owner,
-    balance: Number(formatUnits(balance, token.decimals)),
-    ethValue: 0,
+    balance: formattedBalance,
+    ethValue: formattedBalance * rateToEth,
   }
 
   await db

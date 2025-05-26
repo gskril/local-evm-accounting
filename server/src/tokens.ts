@@ -16,9 +16,37 @@ export const defaultTokens: Insertable<Tables['tokens']>[] = [
       }) as const
   ),
   {
+    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    chain: 1,
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    decimals: 18,
+  },
+  {
+    address: '0x4200000000000000000000000000000000000006',
+    chain: 8453,
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    decimals: 18,
+  },
+  {
+    address: '0x4200000000000000000000000000000000000006',
+    chain: 10,
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    decimals: 18,
+  },
+  {
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    chain: 42161,
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    decimals: 18,
+  },
+  {
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     chain: 1,
-    name: 'USDT',
+    name: 'Tether',
     symbol: 'USDT',
     decimals: 18,
   },
@@ -30,11 +58,11 @@ export const defaultTokens: Insertable<Tables['tokens']>[] = [
     decimals: 6,
   },
   {
-    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-    chain: 1,
-    name: 'Wrapped Ether',
-    symbol: 'WETH',
-    decimals: 18,
+    address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    chain: 8453,
+    name: 'USDC',
+    symbol: 'USDC',
+    decimals: 6,
   },
   {
     address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
@@ -46,7 +74,7 @@ export const defaultTokens: Insertable<Tables['tokens']>[] = [
   {
     address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     chain: 1,
-    name: 'DAI',
+    name: 'Dai',
     symbol: 'DAI',
     decimals: 18,
   },
@@ -88,7 +116,7 @@ export const defaultTokens: Insertable<Tables['tokens']>[] = [
   {
     address: '0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72',
     chain: 1,
-    name: 'ENS',
+    name: 'Ethereum Name Service',
     symbol: 'ENS',
     decimals: 18,
   },
