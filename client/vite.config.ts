@@ -8,17 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      server: path.resolve(__dirname, '../server/src'),
-    },
-  },
-  optimizeDeps: {
-    include: ['server/hc'],
-  },
-  build: {
-    rollupOptions: {
-      // TODO: figure out why these were being bundled in the first place.
-      // I don't think we should have to specify these in the client build.
-      external: ['bullmq', 'hono', 'ioredis', 'kysely', 'viem', 'zod'],
+      'server/hc': path.resolve(__dirname, '../server/dist/hc.d.ts'),
     },
   },
 })

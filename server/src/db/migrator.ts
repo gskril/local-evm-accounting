@@ -1,39 +1,15 @@
-import { promises as fs } from 'fs'
-import { FileMigrationProvider, Migrator } from 'kysely'
-import * as path from 'path'
-import { fileURLToPath } from 'url'
+// https://github.com/beatrix-ha/beatrix/blob/main/server/migrations/this-sucks.ts
+import type { MigrationProvider } from 'kysely'
 
-import { db } from './'
+// NB: We do this because Kysely migrators assume that they can roll through
+// a directory of migrators as plain JavaScript files, which isn't true in Bun,
+// in both dev mode and single-file executable mode.
+import * as m1 from './migrations/001_initial_migrations'
 
-async function migrateToLatest() {
-  const migrator = new Migrator({
-    db,
-    provider: new FileMigrationProvider({
-      fs,
-      path,
-      migrationFolder: path.join(
-        path.dirname(fileURLToPath(import.meta.url)),
-        'migrations'
-      ),
-    }),
-  })
+const migrations = [m1]
 
-  const { error, results } = await migrator.migrateToLatest()
-
-  results?.forEach((it) => {
-    if (it.status === 'Success') {
-      console.info(`Migration "${it.migrationName}" was executed successfully`)
-    } else if (it.status === 'Error') {
-      console.error(`Failed to execute migration "${it.migrationName}"`)
-    }
-  })
-
-  if (error) {
-    console.error(error, 'Failed to migrate')
-    process.exit(1)
-  }
-
-  await db.destroy()
+export const migrator: MigrationProvider = {
+  async getMigrations() {
+    return Object.fromEntries(migrations.map((m, i) => [`migration-${i}`, m]))
+  },
 }
-
-migrateToLatest()

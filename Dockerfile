@@ -1,0 +1,46 @@
+# Use the official Bun image
+FROM oven/bun:1 as builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json .
+COPY client/package.json ./client/
+COPY server/package.json ./server/
+
+# Copy source code first
+COPY . .
+
+# Install dependencies (now that source code is available)
+RUN bun install
+
+# Build server first
+WORKDIR /app/server
+RUN bun run build
+
+# Build client
+WORKDIR /app/client
+RUN bun run build
+
+# Start a new stage for the runtime
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Copy built artifacts and dependencies
+COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/client/dist ./client/dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/client/node_modules ./client/node_modules
+COPY --from=builder /app/server/node_modules ./server/node_modules
+COPY package.json .
+COPY client/package.json ./client/
+COPY server/package.json ./server/
+
+# Expose ports for client and server
+EXPOSE 3000 4173
+
+# Start both applications using concurrently
+CMD ["bun", "run", "start"]
+
