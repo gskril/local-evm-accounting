@@ -3,10 +3,13 @@ import {
   type ColumnType,
   type GeneratedAlways,
   Kysely,
+  Migrator,
   sql,
 } from 'kysely'
 import { BunSqliteDialect } from 'kysely-bun-worker/normal'
 import type { Address } from 'viem'
+
+import { migrator } from './migrator'
 
 interface ChainRow {
   id: number
@@ -51,12 +54,21 @@ export type Tables = {
   networth: NetworthRow
 }
 
-export const db = new Kysely<Tables>({
-  dialect: new BunSqliteDialect({
-    url: process.env.DATABASE_URL?.replace('sqlite://', '') ?? './db.sqlite',
-    onCreateConnection: (conn) => {
-      conn.executeQuery(sql`PRAGMA foreign_keys = ON;`.compile(db))
-    },
-  }),
-  plugins: [new CamelCasePlugin()],
-})
+async function createDatabase(dbPath?: string) {
+  const db = new Kysely<Tables>({
+    dialect: new BunSqliteDialect(dbPath ? { url: dbPath } : {}),
+  })
+
+  await sql`PRAGMA foreign_keys = ON`.execute(db)
+
+  const doit = new Migrator({
+    db,
+    provider: migrator,
+  })
+
+  await doit.migrateToLatest()
+  console.log('Ran db migrations')
+  return db
+}
+
+export const db = await createDatabase()

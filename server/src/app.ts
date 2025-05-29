@@ -6,7 +6,6 @@ import { serveStatic } from 'hono/bun'
 
 import { api } from './api'
 import { db } from './db'
-import './db/migrator'
 import { addCheckBalanceTasksToQueue } from './handlers/balances'
 import { erc20Queue } from './queues/workers/erc20'
 import { ethQueue } from './queues/workers/eth'

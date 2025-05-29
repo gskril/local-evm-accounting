@@ -12,7 +12,6 @@ services:
       - sqlite_data:/app/data
     environment:
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=sqlite:///data/evm_portfolio.db
       - NODE_ENV=production
     command: bun run start
     depends_on:
