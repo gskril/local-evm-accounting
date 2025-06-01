@@ -11,4 +11,7 @@ export default defineConfig({
       'server/hc': path.resolve(__dirname, '../server/dist/hc.d.ts'),
     },
   },
+  preview: {
+    allowedHosts: ['localhost', '127.0.0.1', '0.0.0.0'],
+  },
 })
