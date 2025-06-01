@@ -13,7 +13,7 @@ COPY server/package.json ./server/
 COPY . .
 
 # Install dependencies (now that source code is available)
-RUN bun install
+RUN bun install --ignore-scripts
 
 # Build server first
 WORKDIR /app/server
