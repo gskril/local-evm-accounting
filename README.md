@@ -25,10 +25,11 @@ For more complex portfolio tracking and tax preparation, use [Rotki](https://rot
 
 ## Getting Started
 
-> [!NOTE]  
-> Docker setup coming soon for easy deployment on a home server.
+### Docker
 
-### Installation
+Set `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS`
+
+### Development
 
 ```bash
 # Install dependencies for all workspaces

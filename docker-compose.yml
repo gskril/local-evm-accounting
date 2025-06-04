@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '3000:3000' # Server port
-      - '4173:4173' # Client port
+      - '8579:8579' # Server port
+      - '8580:8580' # Client port
     volumes:
       - sqlite_data:/app/data
     environment:

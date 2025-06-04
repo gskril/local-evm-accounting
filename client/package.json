@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "start": "vite preview --host 0.0.0.0"
+    "start": "vite preview --host 0.0.0.0 --port 8580"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
