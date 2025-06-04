@@ -27,7 +27,31 @@ For more complex portfolio tracking and tax preparation, use [Rotki](https://rot
 
 ### Docker
 
-Set `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS`
+By using the following Docker Compose file, you will expose the web client on port 8580.
+
+```yml
+services:
+  evm-portfolio:
+    image: ghcr.io/gskril/local-evm-accounting:sha-2303074
+    container_name: evm-portfolio
+    environment:
+      # Use this if you visit your local server from a different hostname
+      # - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=
+    volumes:
+      - evm-portfolio_data:/app/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  evm-portfolio_data:
+  redis_data:
+```
 
 ### Development
 
