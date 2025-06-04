@@ -39,7 +39,7 @@ COPY client/package.json ./client/
 COPY server/package.json ./server/
 
 # Expose ports for client and server
-EXPOSE 3000 4173
+EXPOSE 8579 8580
 
 # Start both applications using concurrently
 CMD ["bun", "run", "start"]

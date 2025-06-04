@@ -6,8 +6,8 @@ import { Hex } from '../lib/types'
 import { useCurrency } from './useCurrency'
 import { useQueues } from './useQueues'
 
-// export const SERVER_URL = process.env.VITE_SERVER_URL || 'http://localhost:3000'
-export const SERVER_URL = 'http://host.docker.internal:8001'
+const url = new URL(window.location.origin)
+export const SERVER_URL = url.protocol + '//' + url.hostname + ':8579'
 
 export const honoClient: Client = hc(SERVER_URL) as unknown as Client
 

@@ -11,4 +11,7 @@ export default defineConfig({
       'server/hc': path.resolve(__dirname, '../server/dist/hc.d.ts'),
     },
   },
+  preview: {
+    port: 8580,
+  },
 })
