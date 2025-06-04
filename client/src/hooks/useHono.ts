@@ -6,8 +6,7 @@ import { Hex } from '../lib/types'
 import { useCurrency } from './useCurrency'
 import { useQueues } from './useQueues'
 
-export const SERVER_URL =
-  import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
+export const SERVER_URL = process.env.VITE_SERVER_URL || 'http://localhost:3000'
 
 export const honoClient: Client = hc(SERVER_URL) as unknown as Client
 
