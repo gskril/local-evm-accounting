@@ -54,9 +54,11 @@ export type Tables = {
   networth: NetworthRow
 }
 
-async function createDatabase(dbPath?: string) {
+async function createDatabase() {
   const db = new Kysely<Tables>({
-    dialect: new BunSqliteDialect(dbPath ? { url: dbPath } : {}),
+    dialect: new BunSqliteDialect({
+      url: '/app/data/db.sqlite',
+    }),
   })
 
   await sql`PRAGMA foreign_keys = ON`.execute(db)
