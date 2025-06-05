@@ -17,14 +17,14 @@ export async function addCheckBalanceTasksToQueue() {
       if (token.address === zeroAddress) {
         // Native ETH
         ethTasks.push({
-          address: account.address,
+          owner: account,
           chainId: token.chain,
         })
       } else {
         // ERC20s
         erc20Tasks.push({
           token: token.address,
-          owner: account.address,
+          owner: account,
           chainId: token.chain,
         })
       }
@@ -33,14 +33,14 @@ export async function addCheckBalanceTasksToQueue() {
 
   await ethQueue.addBulk(
     ethTasks.map((task) => ({
-      name: `${task.chainId}:${task.address}`,
+      name: `${task.chainId}:${task.owner.address}`,
       data: task,
     }))
   )
 
   await erc20Queue.addBulk(
     erc20Tasks.map((task) => ({
-      name: `${task.chainId}:${task.owner}:${task.token}`,
+      name: `${task.chainId}:${task.owner.address}:${task.token}`,
       data: task,
     }))
   )
@@ -135,9 +135,9 @@ export async function getEthValueByAccount(c: Context) {
 
     const accounts = await trx
       .selectFrom('accounts')
-      .select(['address', 'name'])
+      .select(['id', 'address', 'name'])
       .where(
-        'address',
+        'id',
         'in',
         balances.map((b) => b.owner)
       )
@@ -148,7 +148,7 @@ export async function getEthValueByAccount(c: Context) {
 
   const data = balances.map((b) => ({
     ethValue: Number(b.ethValue),
-    owner: accounts.find((a) => a.address === b.owner)!,
+    owner: accounts.find((a) => a.id === b.owner)!,
   }))
 
   return c.json(data)

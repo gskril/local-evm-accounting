@@ -73,8 +73,8 @@ export function AccountCard() {
                     variant="outline"
                     size="icon"
                     onClick={async () => {
-                      const promise = honoClient.accounts[':address'].$delete({
-                        param: { address: account.address },
+                      const promise = honoClient.accounts[':id'].$delete({
+                        param: { id: account.id.toString() },
                       })
 
                       toast.promise(promise, {
@@ -104,7 +104,7 @@ export function AccountCard() {
 const addAccountSchema = zfd.formData({
   name: zfd.text(z.string().optional()),
   description: zfd.text(z.string().optional()),
-  addressOrName: zfd.text(),
+  addressOrName: zfd.text(z.string().optional()),
 })
 
 function AccountDialog({
@@ -141,7 +141,6 @@ function AccountDialog({
       },
       error: {
         message: `Failed to ${prompt.toLowerCase()} account`,
-        description: 'Be sure to use the checksummed address',
       },
     })
   }

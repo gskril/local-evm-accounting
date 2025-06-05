@@ -8,7 +8,10 @@ import { createQueue, createWorker } from '../bullmq'
 
 type JobData = {
   chainId: number
-  address: Address
+  owner: {
+    id: number
+    address: Address | null
+  }
 }
 
 export const ethQueue = createQueue<JobData>('eth')
@@ -16,8 +19,14 @@ createWorker<JobData>(ethQueue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
+
+  // TODO: Handle manual accounts
+  if (!job.data.owner.address) {
+    return
+  }
+
   const balance = await client.getBalance({
-    address: job.data.address,
+    address: job.data.owner.address,
   })
 
   const token = await db
@@ -33,7 +42,7 @@ async function processJob(job: Job<JobData>) {
 
   const data: Insertable<Tables['balances']> = {
     token: token.id,
-    owner: job.data.address,
+    owner: job.data.owner.id,
     balance: Number(formatEther(balance)),
     ethValue: Number(formatEther(balance)),
   }

@@ -21,16 +21,6 @@ export function useAccounts() {
   })
 }
 
-export function useAccount(address: Hex | undefined) {
-  return useQuery({
-    queryKey: ['account', address],
-    queryFn: async () => {
-      const res = await honoClient.accounts.$get({ query: { address } })
-      return res.json()
-    },
-  })
-}
-
 export function useChains() {
   return useQuery({
     queryKey: ['chains'],

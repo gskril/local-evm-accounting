@@ -98,7 +98,7 @@ export function RefreshBalancesButton() {
 
   async function handleRefresh() {
     const promise = honoClient.balances.$post()
-    const msg = 'Starting to refetch balances in the background'
+    const msg = 'Starting to fetch balances in the background'
 
     toast.promise(promise, {
       loading: msg,

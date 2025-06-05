@@ -10,7 +10,10 @@ import { createQueue, createWorker } from '../bullmq'
 type JobData = {
   chainId: number
   token: Address
-  owner: Address
+  owner: {
+    id: number
+    address: Address | null
+  }
 }
 
 export const erc20Queue = createQueue<JobData>('erc20')
@@ -18,6 +21,11 @@ createWorker<JobData>(erc20Queue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
+
+  // TODO: Handle manual accounts
+  if (!job.data.owner.address) {
+    return
+  }
 
   const token = await db
     .selectFrom('tokens')
@@ -34,7 +42,7 @@ async function processJob(job: Job<JobData>) {
     abi: erc20Abi,
     address: job.data.token,
     functionName: 'balanceOf',
-    args: [job.data.owner],
+    args: [job.data.owner.address],
   })
 
   const formattedBalance = Number(formatUnits(balance, token.decimals))
@@ -46,7 +54,7 @@ async function processJob(job: Job<JobData>) {
 
   const data: Insertable<Tables['balances']> = {
     token: token.id,
-    owner: job.data.owner,
+    owner: job.data.owner.id,
     balance: formattedBalance,
     ethValue: formattedBalance * rateToEth,
   }
