@@ -9,6 +9,7 @@ import {
 import { BunSqliteDialect } from 'kysely-bun-worker/normal'
 import type { Address } from 'viem'
 
+import { isDocker } from '../docker'
 import { migrator } from './migrator'
 
 interface ChainRow {
@@ -57,8 +58,9 @@ export type Tables = {
 async function createDatabase() {
   const db = new Kysely<Tables>({
     dialect: new BunSqliteDialect({
-      url: '/app/data/db.sqlite',
+      url: isDocker() ? '/app/data/db.sqlite' : 'db.sqlite',
     }),
+    plugins: [new CamelCasePlugin()],
   })
 
   await sql`PRAGMA foreign_keys = ON`.execute(db)
