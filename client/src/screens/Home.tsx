@@ -15,7 +15,7 @@ import {
   useFiat,
   useNetworthTimeSeries,
 } from '@/hooks/useHono'
-import { formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 
 const chartConfig = {
   value: {
@@ -44,19 +44,31 @@ export function Home() {
       <Card>
         <CardContent className="flex items-center justify-center gap-6">
           <div className="flex flex-col items-center justify-center gap-2">
-            {fiat && currency && (
-              <h1 className="text-5xl font-semibold">
-                {formatCurrency(
-                  (balances.data?.totalEthValue ?? 0) / fiat.getRate(currency),
-                  currency
-                )}
-              </h1>
-            )}
+            <h1 className="text-5xl font-semibold">
+              {(() => {
+                if (fiat && currency) {
+                  return formatCurrency(
+                    (balances.data?.totalEthValue ?? 0) /
+                      fiat.getRate(currency),
+                    currency
+                  )
+                }
+
+                return '...'
+              })()}
+            </h1>
 
             <span className="text-muted-foreground text-sm">Total value</span>
           </div>
 
-          <div className="relative hidden w-full lg:block">
+          <div
+            className={cn(
+              'relative hidden w-full',
+              !!networthTimeSeries &&
+                networthTimeSeries.length > 5 &&
+                'lg:block'
+            )}
+          >
             <ChartContainer
               config={chartConfig}
               className="aspect-auto h-[250px] w-full"
