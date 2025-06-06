@@ -14,7 +14,10 @@ export const up = async (db: Kysely<any>) => {
   await db.schema
     .createTable('accounts')
     .ifNotExists()
-    .addColumn('address', 'text', (col) => col.notNull().primaryKey())
+    .addColumn('id', 'integer', (col) =>
+      col.notNull().primaryKey().autoIncrement()
+    )
+    .addColumn('address', 'text')
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('description', 'text')
     .addColumn('createdAt', 'timestamptz', (col) =>
@@ -46,8 +49,8 @@ export const up = async (db: Kysely<any>) => {
     .addColumn('token', 'integer', (col) =>
       col.references('tokens.id').onDelete('cascade').notNull()
     )
-    .addColumn('owner', 'text', (col) =>
-      col.references('accounts.address').onDelete('cascade').notNull()
+    .addColumn('owner', 'integer', (col) =>
+      col.references('accounts.id').onDelete('cascade').notNull()
     )
     .addColumn('balance', 'integer', (col) => col.notNull())
     .addColumn('ethValue', 'integer', (col) => col.notNull())

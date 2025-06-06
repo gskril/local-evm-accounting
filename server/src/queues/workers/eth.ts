@@ -8,7 +8,10 @@ import { createQueue, createWorker } from '../bullmq'
 
 type JobData = {
   chainId: number
-  address: Address
+  owner: {
+    id: number
+    address: Address | null
+  }
 }
 
 export const ethQueue = createQueue<JobData>('eth')
@@ -16,9 +19,6 @@ createWorker<JobData>(ethQueue, processJob)
 
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
-  const balance = await client.getBalance({
-    address: job.data.address,
-  })
 
   const token = await db
     .selectFrom('tokens')
@@ -31,11 +31,37 @@ async function processJob(job: Job<JobData>) {
     throw new Error('Token does not exist')
   }
 
+  // Formatted balance, not the full bigint
+  let balance: number
+
+  if (job.data.owner.address) {
+    // Handle onchain account
+    const rawBalance = await client.getBalance({
+      address: job.data.owner.address,
+    })
+
+    balance = Number(formatEther(rawBalance))
+  } else {
+    // Handle manual account (without an address)
+    const balanceFromDb = await db
+      .selectFrom('balances')
+      .select('balance')
+      .where('token', '=', token.id)
+      .where('owner', '=', job.data.owner.id)
+      .executeTakeFirst()
+
+    if (!balanceFromDb) {
+      throw new Error(`Balance does not exist for account ${job.data.owner.id}`)
+    }
+
+    balance = balanceFromDb.balance
+  }
+
   const data: Insertable<Tables['balances']> = {
     token: token.id,
-    owner: job.data.address,
-    balance: Number(formatEther(balance)),
-    ethValue: Number(formatEther(balance)),
+    owner: job.data.owner.id,
+    balance,
+    ethValue: balance,
   }
 
   await db

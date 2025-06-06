@@ -1,6 +1,6 @@
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
-import { RefreshBalancesButton } from '@/components/BalanceCard'
+import { RefreshPortfolioButton } from '@/components/PortfolioCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartConfig,
@@ -38,7 +38,7 @@ export function Home() {
     <>
       <div className="flex items-center justify-between gap-4">
         <span className="text-2xl font-semibold">EVM Portfolio</span>
-        <RefreshBalancesButton />
+        <RefreshPortfolioButton />
       </div>
 
       <Card>

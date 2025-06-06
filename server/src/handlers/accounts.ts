@@ -7,40 +7,66 @@ import { getViemClient } from '../chains'
 import { db } from '../db'
 import { truncateAddress } from '../utils'
 
+const getAccountsSchema = z.object({
+  type: z.enum(['onchain', 'offchain']).optional(),
+})
+
 export async function getAccounts(c: Context) {
-  const accounts = await db.selectFrom('accounts').selectAll().execute()
+  const safeParse = getAccountsSchema.safeParse(c.req.query())
+
+  if (!safeParse.success) {
+    throw new Error('Invalid query parameters')
+  }
+
+  const { type } = safeParse.data
+
+  let accounts
+
+  switch (type) {
+    case 'onchain':
+      accounts = await db
+        .selectFrom('accounts')
+        .selectAll()
+        .where('address', 'is not', null)
+        .execute()
+      break
+    case 'offchain':
+      accounts = await db
+        .selectFrom('accounts')
+        .selectAll()
+        .where('address', 'is', null)
+        .execute()
+      break
+    default:
+      accounts = await db.selectFrom('accounts').selectAll().execute()
+  }
+
   return c.json(accounts)
 }
 
-export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
-  const address = c.req.param('address')
+// Maybe will be relevant in the future but we don't need it right now
+// export async function getAccount(c: Context<BlankEnv, '/accounts/:address'>) {
+//   const address = c.req.param('address')
 
-  if (!isAddress(address)) {
-    return c.json({ error: 'Invalid address' }, 400)
-  }
+//   if (!isAddress(address)) {
+//     return c.json({ error: 'Invalid address' }, 400)
+//   }
 
-  const account = await db
-    .selectFrom('accounts')
-    .selectAll()
-    .where('address', '=', address)
-    .executeTakeFirst()
+//   const account = await db
+//     .selectFrom('accounts')
+//     .selectAll()
+//     .where('address', '=', address)
+//     .executeTakeFirst()
 
-  if (!account) {
-    return c.json({ error: 'Account not found' }, 404)
-  }
+//   if (!account) {
+//     return c.json({ error: 'Account not found' }, 404)
+//   }
 
-  // const balances = await db
-  //   .selectFrom('balances')
-  //   .selectAll()
-  //   .where('owner', '=', address)
-  //   .where('chain', 'in', account.chainIds)
-  //   .execute()
-
-  return c.json(account)
-}
+//   return c.json(account)
+// }
 
 const addAccountSchema = z.object({
-  addressOrName: z.string(),
+  addressOrName: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
 })
@@ -54,6 +80,26 @@ export async function addAccount(c: Context) {
   }
 
   let { addressOrName, name, description } = safeParse.data
+
+  if (!addressOrName && !name) {
+    return c.json(
+      { error: 'At least one of `addressOrName` or `name` is required' },
+      400
+    )
+  }
+
+  if (!addressOrName) {
+    // Treat this as a manual account
+    await db
+      .insertInto('accounts')
+      .values({
+        name: name!,
+        description,
+      })
+      .execute()
+
+    return c.json({ success: true })
+  }
 
   if (!isAddress(addressOrName)) {
     const client = await getViemClient(1)
@@ -70,32 +116,47 @@ export async function addAccount(c: Context) {
     }
   }
 
-  if (!name) {
-    name = truncateAddress(addressOrName as Address)
+  if (!isAddress(addressOrName)) {
+    // This should be unreachable and is mainly a formality for TypeScript
+    return c.json({ error: 'Error resolving ENS name' }, 400)
   }
 
   const data = {
-    address: addressOrName as Address,
-    name,
+    address: addressOrName,
+    name: name ?? truncateAddress(addressOrName),
     description,
+  }
+
+  // If the address is not null, we should prevent duplicates. But technically
+  // the address can't be marked as unique in the db schema because it's
+  // possible to have a null address.
+  const existingAddress = await db
+    .selectFrom('accounts')
+    .select('address')
+    .where('address', '=', addressOrName)
+    .executeTakeFirst()
+
+  if (existingAddress) {
+    return c.json({ error: 'Account already exists' }, 400)
   }
 
   await db
     .insertInto('accounts')
     .values(data)
-    .onConflict((oc) => oc.column('address').doUpdateSet(data))
+    .onConflict((oc) => oc.column('id').doUpdateSet(data))
     .execute()
 
   return c.json({ success: true })
 }
 
 export async function deleteAccount(c: Context) {
-  const address = c.req.param('address')
+  const id = c.req.param('id')
+  const safeParse = z.coerce.number().safeParse(id)
 
-  if (!isAddress(address)) {
-    return c.json({ error: 'Invalid address' }, 400)
+  if (!safeParse.success) {
+    return c.json({ error: 'Invalid account ID' }, 400)
   }
 
-  await db.deleteFrom('accounts').where('address', '=', address).execute()
+  await db.deleteFrom('accounts').where('id', '=', safeParse.data).execute()
   return c.json({ success: true })
 }

@@ -10,7 +10,10 @@ import { createQueue, createWorker } from '../bullmq'
 type JobData = {
   chainId: number
   token: Address
-  owner: Address
+  owner: {
+    id: number
+    address: Address | null
+  }
 }
 
 export const erc20Queue = createQueue<JobData>('erc20')
@@ -30,14 +33,35 @@ async function processJob(job: Job<JobData>) {
     throw new Error(`Token ${job.data.token} not found`)
   }
 
-  const balance = await client.readContract({
-    abi: erc20Abi,
-    address: job.data.token,
-    functionName: 'balanceOf',
-    args: [job.data.owner],
-  })
+  // Formatted balance, not the full bigint
+  let balance: number
 
-  const formattedBalance = Number(formatUnits(balance, token.decimals))
+  if (job.data.owner.address) {
+    // Handle onchain account
+    const rawBalance = await client.readContract({
+      abi: erc20Abi,
+      address: job.data.token,
+      functionName: 'balanceOf',
+      args: [job.data.owner.address],
+    })
+
+    balance = Number(formatUnits(rawBalance, token.decimals))
+  } else {
+    // Handle manual account (without an address)
+    const balanceFromDb = await db
+      .selectFrom('balances')
+      .select('balance')
+      .where('token', '=', token.id)
+      .where('owner', '=', job.data.owner.id)
+      .executeTakeFirst()
+
+    if (!balanceFromDb) {
+      throw new Error(`Balance for token ${job.data.token} not found`)
+    }
+
+    balance = balanceFromDb.balance
+  }
+
   const rateToEth = await getRateToEth({
     address: job.data.token,
     chainId: job.data.chainId,
@@ -46,9 +70,9 @@ async function processJob(job: Job<JobData>) {
 
   const data: Insertable<Tables['balances']> = {
     token: token.id,
-    owner: job.data.owner,
-    balance: formattedBalance,
-    ethValue: formattedBalance * rateToEth,
+    owner: job.data.owner.id,
+    balance,
+    ethValue: balance * rateToEth,
   }
 
   await db

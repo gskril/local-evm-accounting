@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { zeroAddress } from 'viem'
+import { z } from 'zod'
 
 import { db } from '../db'
 import { erc20Queue } from '../queues/workers/erc20'
@@ -9,22 +10,45 @@ export async function addCheckBalanceTasksToQueue() {
   const accounts = await db.selectFrom('accounts').selectAll().execute()
   const tokens = await db.selectFrom('tokens').selectAll().execute()
 
+  const balancesOfOffchainAccounts = await db
+    .selectFrom('balances')
+    .selectAll()
+    .where(
+      'owner',
+      'in',
+      accounts.filter((a) => a.address === null).map((a) => a.id)
+    )
+    .execute()
+
   const ethTasks = []
   const erc20Tasks = []
 
   for (const account of accounts) {
     for (const token of tokens) {
+      // Handle offchain accounts
+      if (account.address === null) {
+        const balance = balancesOfOffchainAccounts.find(
+          (b) => b.owner === account.id && b.token === token.id
+        )
+
+        // We'll run into an error later if we don't have a balance for an offchain account,
+        // so we'll just not add it to the queue in the first place.
+        if (!balance) {
+          continue
+        }
+      }
+
       if (token.address === zeroAddress) {
         // Native ETH
         ethTasks.push({
-          address: account.address,
+          owner: account,
           chainId: token.chain,
         })
       } else {
         // ERC20s
         erc20Tasks.push({
           token: token.address,
-          owner: account.address,
+          owner: account,
           chainId: token.chain,
         })
       }
@@ -33,14 +57,14 @@ export async function addCheckBalanceTasksToQueue() {
 
   await ethQueue.addBulk(
     ethTasks.map((task) => ({
-      name: `${task.chainId}:${task.address}`,
+      name: `${task.chainId}:${task.owner.id}`,
       data: task,
     }))
   )
 
   await erc20Queue.addBulk(
     erc20Tasks.map((task) => ({
-      name: `${task.chainId}:${task.owner}:${task.token}`,
+      name: `${task.chainId}:${task.owner.id}:${task.token}`,
       data: task,
     }))
   )
@@ -135,9 +159,9 @@ export async function getEthValueByAccount(c: Context) {
 
     const accounts = await trx
       .selectFrom('accounts')
-      .select(['address', 'name'])
+      .select(['id', 'address', 'name'])
       .where(
-        'address',
+        'id',
         'in',
         balances.map((b) => b.owner)
       )
@@ -148,7 +172,7 @@ export async function getEthValueByAccount(c: Context) {
 
   const data = balances.map((b) => ({
     ethValue: Number(b.ethValue),
-    owner: accounts.find((a) => a.address === b.owner)!,
+    owner: accounts.find((a) => a.id === b.owner)!,
   }))
 
   return c.json(data)
@@ -163,4 +187,106 @@ export async function getNetworthTimeSeries(c: Context) {
     .execute()
 
   return c.json(networth.reverse())
+}
+
+export async function getOffchainBalances(c: Context) {
+  const { accounts, balances, tokens } = await db
+    .transaction()
+    .execute(async (trx) => {
+      const accounts = await trx
+        .selectFrom('accounts')
+        .selectAll()
+        .where('address', 'is', null)
+        .execute()
+
+      const balances = await trx
+        .selectFrom('balances')
+        .selectAll()
+        .where(
+          'owner',
+          'in',
+          accounts.map((a) => a.id)
+        )
+        .execute()
+
+      const tokens = await trx
+        .selectFrom('tokens')
+        .selectAll()
+        .where(
+          'id',
+          'in',
+          balances.map((b) => b.token)
+        )
+        .execute()
+
+      return { accounts, balances, tokens }
+    })
+
+  const enhancedBalances = balances.map((b) => ({
+    ...b,
+    owner: accounts.find((a) => a.id === b.owner)!,
+    token: tokens.find((t) => t.id === b.token)!,
+  }))
+
+  return c.json(enhancedBalances)
+}
+
+const editOffchainAccountSchema = z.object({
+  account: z.number(),
+  token: z.number(),
+  amount: z.number(),
+})
+
+export async function editOffchainBalance(c: Context) {
+  const safeParse = editOffchainAccountSchema.safeParse(await c.req.json())
+
+  if (!safeParse.success) {
+    return c.json({ error: safeParse.error }, 400)
+  }
+
+  const { account, token, amount } = safeParse.data
+
+  const realAccount = await db
+    .selectFrom('accounts')
+    .selectAll()
+    .where('id', '=', account)
+    .executeTakeFirst()
+
+  if (!realAccount || !!realAccount.address) {
+    return c.json({ error: 'Cannot edit balances for onchain accounts' }, 400)
+  }
+
+  await db
+    .insertInto('balances')
+    .values({
+      token,
+      owner: account,
+      balance: amount,
+      ethValue: 0,
+    })
+    .onConflict((oc) => oc.doUpdateSet({ balance: amount, ethValue: 0 }))
+    .execute()
+
+  return c.json({ success: true })
+}
+
+const deleteOffchainBalanceSchema = z.object({
+  account: z.coerce.number(),
+  token: z.coerce.number(),
+})
+
+export async function deleteOffchainBalance(c: Context) {
+  const safeParse = deleteOffchainBalanceSchema.safeParse(await c.req.json())
+
+  if (!safeParse.success) {
+    return c.json({ error: safeParse.error }, 400)
+  }
+
+  await db
+    .deleteFrom('balances')
+    .where('owner', '=', safeParse.data.account)
+    .where('token', '=', safeParse.data.token)
+    .execute()
+
+  return c.json({ success: true })
 }
