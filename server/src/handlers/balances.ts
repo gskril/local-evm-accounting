@@ -252,7 +252,7 @@ export async function editOffchainBalance(c: Context) {
     .where('id', '=', account)
     .executeTakeFirst()
 
-  if (!realAccount || !realAccount.address) {
+  if (!realAccount || !!realAccount.address) {
     return c.json({ error: 'Cannot edit balances for onchain accounts' }, 400)
   }
 
@@ -265,6 +265,27 @@ export async function editOffchainBalance(c: Context) {
       ethValue: 0,
     })
     .onConflict((oc) => oc.doUpdateSet({ balance: amount, ethValue: 0 }))
+    .execute()
+
+  return c.json({ success: true })
+}
+
+const deleteOffchainBalanceSchema = z.object({
+  account: z.coerce.number(),
+  token: z.coerce.number(),
+})
+
+export async function deleteOffchainBalance(c: Context) {
+  const safeParse = deleteOffchainBalanceSchema.safeParse(await c.req.json())
+
+  if (!safeParse.success) {
+    return c.json({ error: safeParse.error }, 400)
+  }
+
+  await db
+    .deleteFrom('balances')
+    .where('owner', '=', safeParse.data.account)
+    .where('token', '=', safeParse.data.token)
     .execute()
 
   return c.json({ success: true })

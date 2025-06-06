@@ -1,5 +1,5 @@
 import { VariantProps } from 'class-variance-authority'
-import { Pencil } from 'lucide-react'
+import { Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
 import { zfd } from 'zod-form-data'
 
@@ -57,9 +57,7 @@ export function BalanceCard() {
             Manage the balances of your manual accounts.
           </CardDescription>
         </div>
-        <div className="flex gap-2">
-          {<BalanceDialog prompt="Add" data={offchainBalances.data} />}
-        </div>
+        <div className="flex gap-2">{<BalanceDialog prompt="Add" />}</div>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
@@ -69,6 +67,7 @@ export function BalanceCard() {
               <TableHead>Account</TableHead>
               <TableHead>Token</TableHead>
               <TableHead>Balance</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -79,8 +78,39 @@ export function BalanceCard() {
                 <TableCell>{balance.balance}</TableCell>
 
                 <TableCell className="flex justify-end gap-2">
-                  <Button variant="outline" size="icon">
-                    <Pencil />
+                  <BalanceDialog
+                    prompt="Edit"
+                    data={offchainBalances.data?.find(
+                      (b) =>
+                        b.owner.id === balance.owner.id &&
+                        b.token.id === balance.token.id
+                    )}
+                    variant="outline"
+                    size="icon"
+                  />
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const promise = honoClient.balances.offchain.$delete({
+                        json: {
+                          account: balance.owner.id,
+                          token: balance.token.id,
+                        },
+                      })
+
+                      toast.promise(promise, {
+                        loading: 'Deleting...',
+                        success: () => {
+                          offchainBalances.refetch()
+                          return 'Balance deleted'
+                        },
+                        error: 'Failed to delete balance',
+                      })
+                    }}
+                  >
+                    <Trash />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -103,12 +133,18 @@ function BalanceDialog({
   prompt,
   ...buttonProps
 }: {
-  data: ReturnType<typeof useOffchainBalances>['data']
+  data?: NonNullable<ReturnType<typeof useOffchainBalances>['data']>[number]
   prompt: 'Add' | 'Edit'
 } & VariantProps<typeof buttonVariants>) {
   const offchainBalances = useOffchainBalances()
   const accounts = useAccounts('offchain')
   const tokens = useTokens()
+
+  const defaultAccount = data?.owner.id?.toString()
+  const defaultToken = data?.token.id?.toString()
+  const defaultAmount = data?.balance?.toString()
+
+  console.log({ defaultAccount, defaultToken, defaultAmount })
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -116,6 +152,7 @@ function BalanceDialog({
     const safeParse = balanceFormSchema.safeParse(formData)
 
     if (safeParse.error) {
+      console.log(safeParse.error)
       toast.error('Invalid form data')
       return
     }
@@ -136,7 +173,10 @@ function BalanceDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button {...buttonProps}>
+        <Button
+          {...buttonProps}
+          disabled={!accounts.data || accounts.data.length === 0}
+        >
           {buttonProps.size === 'icon' ? <Pencil /> : prompt}
         </Button>
       </DialogTrigger>
@@ -146,7 +186,7 @@ function BalanceDialog({
         </DialogHeader>
 
         {(() => {
-          if (!data || !accounts.data || !tokens.data) {
+          if (!accounts.data || !tokens.data) {
             return <div>Loading...</div>
           }
 
@@ -161,8 +201,11 @@ function BalanceDialog({
                   <Label htmlFor="name" className="gap-1">
                     Account
                   </Label>
-                  <Select name="account">
-                    <SelectTrigger className="w-full">
+                  <Select name="account" defaultValue={defaultAccount}>
+                    <SelectTrigger
+                      className="w-full"
+                      disabled={!!defaultAccount}
+                    >
                       <SelectValue placeholder="Select an account" />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,8 +223,8 @@ function BalanceDialog({
 
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="description">Token</Label>
-                  <Select name="token">
-                    <SelectTrigger className="w-full">
+                  <Select name="token" defaultValue={defaultToken}>
+                    <SelectTrigger className="w-full" disabled={!!defaultToken}>
                       <SelectValue placeholder="Select a token" />
                     </SelectTrigger>
                     <SelectContent>
@@ -196,7 +239,13 @@ function BalanceDialog({
 
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="amount">Amount</Label>
-                  <Input name="amount" type="number" step="any" required />
+                  <Input
+                    name="amount"
+                    type="number"
+                    step="any"
+                    required
+                    defaultValue={defaultAmount}
+                  />
                 </div>
               </form>
 

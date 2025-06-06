@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 
 import { addAccount, deleteAccount, getAccounts } from './handlers/accounts'
 import {
+  deleteOffchainBalance,
   editOffchainBalance,
   fetchBalances,
   getBalances,
@@ -35,6 +36,7 @@ export const routes = api
   .post('/setup/chains', (c) => setupDefaultChains(c))
   .post('/setup/tokens', (c) => setupDefaultTokens(c))
   .post('/balances/offchain', (c) => editOffchainBalance(c))
+  .delete('/balances/offchain', (c) => deleteOffchainBalance(c))
   .delete('/chains/:id', (c) => deleteChain(c))
   .delete('/accounts/:id', (c) => deleteAccount(c))
   .delete('/tokens', (c) => deleteToken(c))
