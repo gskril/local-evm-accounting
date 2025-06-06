@@ -112,7 +112,7 @@ function AccountDialog({
   prompt,
   ...buttonProps
 }: {
-  address?: string
+  address?: string | null
   prompt: 'Add' | 'Edit'
 } & VariantProps<typeof buttonVariants>) {
   const accounts = useAccounts()
@@ -197,7 +197,7 @@ function AccountDialog({
             <Input
               name="addressOrName"
               placeholder="0x1234567890123456789012345678901234567890"
-              defaultValue={selectedAccount?.address}
+              defaultValue={selectedAccount?.address ?? ''}
               autoComplete="off"
               data-1p-ignore
             />
