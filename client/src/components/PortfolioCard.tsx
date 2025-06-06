@@ -27,7 +27,7 @@ export function PortfolioCard() {
     <Card>
       <CardHeader className="flex items-center justify-between gap-2">
         <CardTitle>Multichain Portfolio </CardTitle>
-        <RefreshBalancesButton />
+        <RefreshPortfolioButton />
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
@@ -92,7 +92,7 @@ export function PortfolioCard() {
   )
 }
 
-export function RefreshBalancesButton() {
+export function RefreshPortfolioButton() {
   const queues = useQueues()
   const isLoading = !!queues.data?.inProgress
 

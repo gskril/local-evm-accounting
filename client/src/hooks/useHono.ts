@@ -10,11 +10,15 @@ export const SERVER_URL = url.protocol + '//' + url.hostname + ':8579'
 
 export const honoClient: Client = hc(SERVER_URL) as unknown as Client
 
-export function useAccounts() {
+export function useAccounts(type?: 'onchain' | 'offchain') {
   return useQuery({
-    queryKey: ['accounts'],
+    queryKey: ['accounts', type],
     queryFn: async () => {
-      const res = await honoClient.accounts.$get({})
+      const res = await honoClient.accounts.$get({
+        query: {
+          type,
+        },
+      })
       return res.json()
     },
   })
@@ -119,6 +123,16 @@ export function useNetworthTimeSeries() {
         ...item,
         value: item.ethValue / (fiat?.getRate(currency) ?? 1),
       }))
+    },
+  })
+}
+
+export function useOffchainBalances() {
+  return useQuery({
+    queryKey: ['offchainBalances'],
+    queryFn: async () => {
+      const res = await honoClient.balances.offchain.$get()
+      return res.json()
     },
   })
 }

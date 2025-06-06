@@ -51,7 +51,7 @@ async function processJob(job: Job<JobData>) {
       .executeTakeFirst()
 
     if (!balanceFromDb) {
-      throw new Error('Balance does not exist')
+      throw new Error(`Balance does not exist for account ${job.data.owner.id}`)
     }
 
     balance = balanceFromDb.balance

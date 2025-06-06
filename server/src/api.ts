@@ -3,10 +3,12 @@ import { cors } from 'hono/cors'
 
 import { addAccount, deleteAccount, getAccounts } from './handlers/accounts'
 import {
+  editOffchainBalance,
   fetchBalances,
   getBalances,
   getEthValueByAccount,
   getNetworthTimeSeries,
+  getOffchainBalances,
 } from './handlers/balances'
 import { addChain, deleteChain, getChains } from './handlers/chains'
 import { getFiat } from './handlers/fiat'
@@ -23,6 +25,7 @@ export const routes = api
   .get('/balances', (c) => getBalances(c))
   .get('/balances/accounts', (c) => getEthValueByAccount(c))
   .get('/balances/networth', (c) => getNetworthTimeSeries(c))
+  .get('/balances/offchain', (c) => getOffchainBalances(c))
   .get('/tokens', (c) => getTokens(c))
   .get('/fiat', (c) => getFiat(c))
   .post('/accounts', (c) => addAccount(c))
@@ -31,6 +34,7 @@ export const routes = api
   .post('/tokens', (c) => addToken(c))
   .post('/setup/chains', (c) => setupDefaultChains(c))
   .post('/setup/tokens', (c) => setupDefaultTokens(c))
+  .post('/balances/offchain', (c) => editOffchainBalance(c))
   .delete('/chains/:id', (c) => deleteChain(c))
   .delete('/accounts/:id', (c) => deleteAccount(c))
   .delete('/tokens', (c) => deleteToken(c))

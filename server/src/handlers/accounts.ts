@@ -7,8 +7,40 @@ import { getViemClient } from '../chains'
 import { db } from '../db'
 import { truncateAddress } from '../utils'
 
+const getAccountsSchema = z.object({
+  type: z.enum(['onchain', 'offchain']).optional(),
+})
+
 export async function getAccounts(c: Context) {
-  const accounts = await db.selectFrom('accounts').selectAll().execute()
+  const safeParse = getAccountsSchema.safeParse(c.req.query())
+
+  if (!safeParse.success) {
+    throw new Error('Invalid query parameters')
+  }
+
+  const { type } = safeParse.data
+
+  let accounts
+
+  switch (type) {
+    case 'onchain':
+      accounts = await db
+        .selectFrom('accounts')
+        .selectAll()
+        .where('address', 'is not', null)
+        .execute()
+      break
+    case 'offchain':
+      accounts = await db
+        .selectFrom('accounts')
+        .selectAll()
+        .where('address', 'is', null)
+        .execute()
+      break
+    default:
+      accounts = await db.selectFrom('accounts').selectAll().execute()
+  }
+
   return c.json(accounts)
 }
 
