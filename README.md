@@ -14,7 +14,7 @@ For more complex portfolio tracking and tax preparation, use [Rotki](https://rot
 - [x] Add/edit accounts
 - [x] Add/edit chains
 - [x] Add/edit tokens
-- [ ] Add/edit manual balances for tracking assets on exchanges
+- [x] Add/edit manual balances for tracking assets on exchanges
 - [x] View token balances
 - [x] View token/portfolio value in USD/EUR/ETH
 
