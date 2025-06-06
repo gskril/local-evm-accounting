@@ -30,7 +30,7 @@ export const defaultChains: Insertable<Tables['chains']>[] = [
   },
 ]
 
-// TODO: Optimize this so we don't read from Postgres every call
+// This can probably be optimized so we don't read from the db every time
 export async function getViemClient(chainId: number) {
   const chain = await db
     .selectFrom('chains')

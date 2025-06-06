@@ -20,15 +20,6 @@ createWorker<JobData>(ethQueue, processJob)
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
 
-  // TODO: Handle manual accounts
-  if (!job.data.owner.address) {
-    return
-  }
-
-  const balance = await client.getBalance({
-    address: job.data.owner.address,
-  })
-
   const token = await db
     .selectFrom('tokens')
     .select('id')
@@ -40,11 +31,37 @@ async function processJob(job: Job<JobData>) {
     throw new Error('Token does not exist')
   }
 
+  // Formatted balance, not the full bigint
+  let balance: number
+
+  if (job.data.owner.address) {
+    // Handle onchain account
+    const rawBalance = await client.getBalance({
+      address: job.data.owner.address,
+    })
+
+    balance = Number(formatEther(rawBalance))
+  } else {
+    // Handle manual account (without an address)
+    const balanceFromDb = await db
+      .selectFrom('balances')
+      .select('balance')
+      .where('token', '=', token.id)
+      .where('owner', '=', job.data.owner.id)
+      .executeTakeFirst()
+
+    if (!balanceFromDb) {
+      throw new Error('Balance does not exist')
+    }
+
+    balance = balanceFromDb.balance
+  }
+
   const data: Insertable<Tables['balances']> = {
     token: token.id,
     owner: job.data.owner.id,
-    balance: Number(formatEther(balance)),
-    ethValue: Number(formatEther(balance)),
+    balance,
+    ethValue: balance,
   }
 
   await db

@@ -22,11 +22,6 @@ createWorker<JobData>(erc20Queue, processJob)
 async function processJob(job: Job<JobData>) {
   const client = await getViemClient(job.data.chainId)
 
-  // TODO: Handle manual accounts
-  if (!job.data.owner.address) {
-    return
-  }
-
   const token = await db
     .selectFrom('tokens')
     .select(['id', 'decimals'])
@@ -38,14 +33,35 @@ async function processJob(job: Job<JobData>) {
     throw new Error(`Token ${job.data.token} not found`)
   }
 
-  const balance = await client.readContract({
-    abi: erc20Abi,
-    address: job.data.token,
-    functionName: 'balanceOf',
-    args: [job.data.owner.address],
-  })
+  // Formatted balance, not the full bigint
+  let balance: number
 
-  const formattedBalance = Number(formatUnits(balance, token.decimals))
+  if (job.data.owner.address) {
+    // Handle onchain account
+    const rawBalance = await client.readContract({
+      abi: erc20Abi,
+      address: job.data.token,
+      functionName: 'balanceOf',
+      args: [job.data.owner.address],
+    })
+
+    balance = Number(formatUnits(rawBalance, token.decimals))
+  } else {
+    // Handle manual account (without an address)
+    const balanceFromDb = await db
+      .selectFrom('balances')
+      .select('balance')
+      .where('token', '=', token.id)
+      .where('owner', '=', job.data.owner.id)
+      .executeTakeFirst()
+
+    if (!balanceFromDb) {
+      throw new Error(`Balance for token ${job.data.token} not found`)
+    }
+
+    balance = balanceFromDb.balance
+  }
+
   const rateToEth = await getRateToEth({
     address: job.data.token,
     chainId: job.data.chainId,
@@ -55,8 +71,8 @@ async function processJob(job: Job<JobData>) {
   const data: Insertable<Tables['balances']> = {
     token: token.id,
     owner: job.data.owner.id,
-    balance: formattedBalance,
-    ethValue: formattedBalance * rateToEth,
+    balance,
+    ethValue: balance * rateToEth,
   }
 
   await db
