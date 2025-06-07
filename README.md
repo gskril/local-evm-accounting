@@ -35,6 +35,7 @@ services:
     image: ghcr.io/gskril/evm-portfolio:latest
     container_name: evm-portfolio
     environment:
+      - REDIS_URL=redis://redis:6379
       # Use this if you visit your local server from a different hostname
       # - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=
     depends_on:
