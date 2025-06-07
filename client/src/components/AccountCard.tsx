@@ -116,6 +116,7 @@ function AccountDialog({
   prompt: 'Add' | 'Edit'
 } & VariantProps<typeof buttonVariants>) {
   const accounts = useAccounts()
+  const { refetch: refetchOffchainAccounts } = useAccounts('offchain')
   const selectedAccount = accounts.data?.find(
     (account) => account.address === address
   )
@@ -137,6 +138,7 @@ function AccountDialog({
       loading: `${prompt}ing account...`,
       success: () => {
         accounts.refetch()
+        refetchOffchainAccounts()
         return `${prompt}ed account`
       },
       error: {

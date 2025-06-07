@@ -1,6 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
+import { useAccounts } from '@/hooks/useHono'
 import { SERVER_URL } from '@/hooks/useHono'
 import { useQueues } from '@/hooks/useQueues'
 import { cn } from '@/lib/utils'
@@ -32,10 +33,12 @@ const links = [
     label: 'Balances',
     to: '/balances',
   },
-]
+] as const
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
   const queues = useQueues()
+  const { data: offchainAccounts } = useAccounts('offchain')
 
   return (
     <div className="grid grid-cols-[10rem_1fr] lg:grid-cols-[15rem_1fr]">
@@ -43,7 +46,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <nav>
           <ul>
             {links.map((link) => (
-              <li key={link.to}>
+              <li
+                key={link.to}
+                className={cn(
+                  link.label === 'Balances' &&
+                    offchainAccounts?.length === 0 &&
+                    'hidden'
+                )}
+              >
                 <Link
                   to={link.to}
                   className={cn(
