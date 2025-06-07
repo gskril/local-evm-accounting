@@ -132,12 +132,19 @@ export async function addAccount(c: Context) {
   // possible to have a null address.
   const existingAddress = await db
     .selectFrom('accounts')
-    .select('address')
+    .select('id')
     .where('address', '=', addressOrName)
     .executeTakeFirst()
 
   if (existingAddress) {
-    return c.json({ error: 'Account already exists' }, 400)
+    // Treat this as an update
+    await db
+      .updateTable('accounts')
+      .set(data)
+      .where('id', '=', existingAddress.id)
+      .execute()
+
+    return c.json({ success: true })
   }
 
   await db
