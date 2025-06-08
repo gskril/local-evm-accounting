@@ -1,5 +1,11 @@
 import type { Context } from 'hono'
-import { type Address, erc20Abi, isAddress, zeroAddress } from 'viem'
+import {
+  type Address,
+  erc20Abi,
+  erc4626Abi,
+  isAddress,
+  zeroAddress,
+} from 'viem'
 import { z } from 'zod'
 
 import { getViemClient } from '../chains'
@@ -54,14 +60,15 @@ export async function addToken(c: Context) {
 
     const contract = {
       address,
-      abi: erc20Abi,
+      abi: [...erc20Abi, ...erc4626Abi],
     }
 
-    const [name, symbol, decimals] = await client.multicall({
+    const [name, symbol, decimals, erc4626Asset] = await client.multicall({
       contracts: [
         { ...contract, functionName: 'name' },
         { ...contract, functionName: 'symbol' },
         { ...contract, functionName: 'decimals' },
+        { ...contract, functionName: 'asset' },
       ],
       // This is needed when a `chain` object is not provided to viem
       // Using deployments from https://github.com/mds1/multicall3
@@ -72,6 +79,16 @@ export async function addToken(c: Context) {
       return c.json({ error: 'Failed to fetch token data' }, 409)
     }
 
+    let erc4626AssetDecimals: number | null = null
+
+    if (erc4626Asset.result) {
+      erc4626AssetDecimals = await client.readContract({
+        abi: erc20Abi,
+        address: erc4626Asset.result,
+        functionName: 'decimals',
+      })
+    }
+
     await db
       .insertInto('tokens')
       .values({
@@ -80,6 +97,8 @@ export async function addToken(c: Context) {
         name: name.result,
         symbol: symbol.result,
         decimals: decimals.result,
+        erc4626AssetAddress: erc4626Asset.result,
+        erc4626AssetDecimals,
       })
       .onConflict((oc) => oc.doNothing())
       .execute()

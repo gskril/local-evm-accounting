@@ -5,8 +5,9 @@ import type { MigrationProvider } from 'kysely'
 // a directory of migrators as plain JavaScript files, which isn't true in Bun,
 // in both dev mode and single-file executable mode.
 import * as m1 from './migrations/001_initial_migrations'
+import * as m2 from './migrations/002_erc4626'
 
-const migrations = [m1]
+const migrations = [m1, m2]
 
 export const migrator: MigrationProvider = {
   async getMigrations() {

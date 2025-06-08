@@ -33,6 +33,8 @@ interface TokenRow {
   name: string
   symbol: string
   decimals: number
+  erc4626AssetAddress: Address | null
+  erc4626AssetDecimals: number | null
 }
 
 interface BalanceRow {
@@ -71,8 +73,17 @@ async function createDatabase() {
     provider: migrator,
   })
 
-  await doit.migrateToLatest()
-  console.log('Ran db migrations')
+  const { results } = await doit.migrateToLatest()
+
+  if (results) {
+    if (results.some((r) => r.status === 'Error')) {
+      console.error('Failed migrations:', results)
+      process.exit(1)
+    } else {
+      console.log('Ran db migrations')
+    }
+  }
+
   return db
 }
 
