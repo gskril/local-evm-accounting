@@ -1,4 +1,4 @@
-import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import { RefreshPortfolioButton } from '@/components/PortfolioCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -79,6 +79,7 @@ export function Home() {
                 margin={{
                   left: 12,
                   right: 12,
+                  top: 4,
                 }}
               >
                 <CartesianGrid vertical={false} />
@@ -95,6 +96,12 @@ export function Home() {
                       day: 'numeric',
                     })
                   }}
+                />
+                <YAxis
+                  domain={['dataMin', 'dataMax']}
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
                 />
                 <ChartTooltip
                   content={
