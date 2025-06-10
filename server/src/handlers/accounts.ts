@@ -66,6 +66,7 @@ export async function getAccounts(c: Context) {
 // }
 
 const addAccountSchema = z.object({
+  id: z.coerce.number().optional(),
   addressOrName: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
@@ -79,7 +80,7 @@ export async function addAccount(c: Context) {
     return c.json({ error: safeParse.error }, 400)
   }
 
-  let { addressOrName, name, description } = safeParse.data
+  let { id, addressOrName, name, description } = safeParse.data
 
   if (!addressOrName && !name) {
     return c.json(
@@ -88,15 +89,28 @@ export async function addAccount(c: Context) {
     )
   }
 
+  // Handle offchain accounts
   if (!addressOrName) {
-    // Treat this as a manual account
-    await db
-      .insertInto('accounts')
-      .values({
-        name: name!,
-        description,
-      })
-      .execute()
+    if (id) {
+      // Update an existing offchain account
+      await db
+        .updateTable('accounts')
+        .set({
+          name,
+          description,
+        })
+        .where('id', '=', id)
+        .execute()
+    } else {
+      // Create a new offchain account
+      await db
+        .insertInto('accounts')
+        .values({
+          name: name!,
+          description,
+        })
+        .execute()
+    }
 
     return c.json({ success: true })
   }
@@ -137,21 +151,10 @@ export async function addAccount(c: Context) {
     .executeTakeFirst()
 
   if (existingAddress) {
-    // Treat this as an update
-    await db
-      .updateTable('accounts')
-      .set(data)
-      .where('id', '=', existingAddress.id)
-      .execute()
-
-    return c.json({ success: true })
+    return c.json({ error: 'Account already exists' }, 400)
   }
 
-  await db
-    .insertInto('accounts')
-    .values(data)
-    .onConflict((oc) => oc.column('id').doUpdateSet(data))
-    .execute()
+  await db.insertInto('accounts').values(data).execute()
 
   return c.json({ success: true })
 }

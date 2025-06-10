@@ -102,6 +102,7 @@ export function AccountCard() {
 }
 
 const addAccountSchema = zfd.formData({
+  id: zfd.text(z.coerce.number().optional()),
   name: zfd.text(z.string().optional()),
   description: zfd.text(z.string().optional()),
   addressOrName: zfd.text(z.string().optional()),
@@ -164,6 +165,8 @@ function AccountDialog({
           onSubmit={handleAddAccount}
           className="flex flex-col gap-4"
         >
+          <input type="hidden" name="id" value={selectedAccount?.id} />
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name" className="gap-1">
               Name{' '}
@@ -173,7 +176,6 @@ function AccountDialog({
             </Label>
             <Input
               name="name"
-              placeholder="My Account"
               autoComplete="off"
               data-1p-ignore
               defaultValue={selectedAccount?.name}
@@ -187,19 +189,15 @@ function AccountDialog({
                 (optional)
               </span>
             </Label>
-            <Input
-              name="description"
-              placeholder="My Account"
-              autoComplete="off"
-            />
+            <Input name="description" autoComplete="off" />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="addressOrName">Address or ENS name</Label>
             <Input
               name="addressOrName"
-              placeholder="0x1234567890123456789012345678901234567890"
               defaultValue={selectedAccount?.address ?? ''}
+              disabled={!!selectedAccount?.id}
               autoComplete="off"
               data-1p-ignore
             />
