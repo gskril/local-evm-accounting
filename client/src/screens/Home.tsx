@@ -99,9 +99,8 @@ export function Home() {
                 />
                 <YAxis
                   domain={['dataMin', 'dataMax']}
-                  tickLine={false}
                   axisLine={false}
-                  tickMargin={8}
+                  tick={false}
                 />
                 <ChartTooltip
                   content={
