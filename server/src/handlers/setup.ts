@@ -25,7 +25,10 @@ export async function setupDefaultTokens(c: Context) {
     .insertInto('tokens')
     .values(
       tokensOnChains.map((t) => ({
-        ...t,
+        address: t.address,
+        name: t.name,
+        symbol: t.symbol,
+        decimals: t.decimals,
         chain: t.chainId,
       }))
     )
