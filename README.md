@@ -1,13 +1,12 @@
 # Local-First EVM Portfolio Tracker
 
-A simple portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints. The program explicity doesn't care about transaction history to reduce complexity and maximize privacy.
+A simple portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints.
 
-Uses the [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values.
+![Screenshot](https://github.com/user-attachments/assets/b25d9412-2ffa-45d3-a617-f4fa7e8a8840)
 
-For more complex portfolio tracking and tax preparation, use [Rotki](https://rotki.com/).
+Uses the [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values from onchain data.
 
-> [!NOTE]  
-> I haven't thought of a clean way to handle custom gas tokens, so there's currently no way to track POL on Polygon for example.
+The application explicity doesn't care about transaction history to reduce complexity and maximize privacy. For more precise accounting, use [Rotki](https://rotki.com/).
 
 ## Features
 
@@ -17,23 +16,23 @@ For more complex portfolio tracking and tax preparation, use [Rotki](https://rot
 - [x] Add/edit manual balances for tracking assets on exchanges
 - [x] View token balances
 - [x] View token/portfolio value in USD/EUR/ETH
-
-### Extras
-
-- [x] Show portfolio value over time (cron to refresh balances and store time series data)
-- [ ] Trigger notifications when balances change
+- [x] View portfolio value over time (chart appears after 3 days)
 
 ## Getting Started
 
-### Docker
+This is intended to be run on a private home server with access to an Ethereum node. There is no additional user auth.
 
-By using the following Docker Compose file, you will expose the web client on port `8580`.
+### Docker (recommended)
+
+Use the following Docker Compose file to expose the web client on port `8580`.
 
 ```yml
 services:
   evm-portfolio:
     image: ghcr.io/gskril/evm-portfolio:latest
     container_name: evm-portfolio
+    ports:
+      - 8580:8580
     environment:
       - REDIS_URL=redis://redis:6379
       # Use this if you visit your local server from a different hostname
@@ -48,15 +47,14 @@ services:
     image: redis:latest
     container_name: redis
     restart: unless-stopped
-    volumes:
-      - redis_data:/data
 
 volumes:
   evm-portfolio_data:
-  redis_data:
 ```
 
 ### Development
+
+Redis is used with BullMQ to manage background jobs. I don't like using Docker for local development, so you'll need to [install](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/) and run `redis-server` separately on your machine.
 
 ```bash
 # Install dependencies for all workspaces
@@ -70,15 +68,4 @@ bun run dev
 # Or run individual parts
 bun run dev:server
 bun run dev:client
-```
-
-### Building
-
-```bash
-# Build everything
-bun run build
-
-# Or build individual parts
-bun run build:server
-bun run build:client
 ```
