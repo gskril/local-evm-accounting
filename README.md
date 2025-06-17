@@ -1,12 +1,12 @@
-# Local-First EVM Portfolio Tracker
+# EVM Portfolio Tracker
 
-A simple portfolio tracker for EVM accounts that gets data exclusively from user-provided RPC endpoints.
+A local-first, privacy-focused EVM portfolio tracker that gets data exclusively from user-provided RPC endpoints.
 
-![Screenshot](https://github.com/user-attachments/assets/b25d9412-2ffa-45d3-a617-f4fa7e8a8840)
+https://github.com/user-attachments/assets/99bfe583-d837-474f-971e-20952060a2d2
 
 Uses the [1inch Spot Price Aggregator](https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction) to get asset values from onchain data.
 
-The application explicity doesn't care about transaction history to reduce complexity and maximize privacy. For more precise accounting, use [Rotki](https://rotki.com/).
+The application explicitly doesn't care about transaction history to reduce complexity and maximize privacy. For more precise accounting, use [Rotki](https://rotki.com/).
 
 ## Features
 
