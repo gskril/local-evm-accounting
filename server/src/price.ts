@@ -1,8 +1,6 @@
 import { type Address, formatEther, parseAbi } from 'viem'
-import { z } from 'zod'
 
 import { getViemClient } from './chains'
-import { estimateBlockNumber } from './utils'
 
 // https://portal.1inch.dev/documentation/contracts/spot-price-aggregator/introduction
 const SPOT_PRICE_AGGREGATOR = {
@@ -14,24 +12,17 @@ const SPOT_PRICE_AGGREGATOR = {
 
 type Props = {
   address: Address
-  blockNumber?: bigint
   chainId: number
   decimals: number
 }
 
-export async function getRateToEth({
-  address,
-  blockNumber,
-  chainId,
-  decimals,
-}: Props) {
+export async function getRateToEth({ address, chainId, decimals }: Props) {
   const client = await getViemClient(chainId)
 
   const rate = await client.readContract({
     ...SPOT_PRICE_AGGREGATOR,
     functionName: 'getRateToEth',
     args: [address, true],
-    blockNumber,
   })
 
   const numerator = BigInt(10 ** decimals)
@@ -39,36 +30,4 @@ export async function getRateToEth({
   const priceInEth = (rate * numerator) / denominator
 
   return Number(formatEther(priceInEth))
-}
-
-export const supportedCurrencies = ['USD', 'EUR', 'ETH'] as const
-export const supportedCurrencySchema = z.enum(supportedCurrencies)
-export type SupportedCurrency = z.infer<typeof supportedCurrencySchema>
-
-export async function getFiatRateToEth(
-  currency: SupportedCurrency,
-  timestamp: string
-) {
-  // Assume the timestamp is UTC, local server may be different
-  const date = new Date(timestamp + 'Z')
-  const blockNumber = estimateBlockNumber(date)
-
-  switch (currency) {
-    case 'USD':
-      return getRateToEth({
-        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        decimals: 6,
-        chainId: 1,
-        blockNumber,
-      })
-    case 'EUR':
-      return getRateToEth({
-        address: '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c',
-        decimals: 6,
-        chainId: 1,
-        blockNumber,
-      })
-    case 'ETH':
-      return 1
-  }
 }
