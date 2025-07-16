@@ -3,6 +3,7 @@ import { zeroAddress } from 'viem'
 import { z } from 'zod'
 
 import { db } from '../db'
+import { getFiatRateToEth, supportedCurrencySchema } from '../price'
 import { erc20Queue } from '../queues/workers/erc20'
 import { ethQueue } from '../queues/workers/eth'
 
@@ -179,14 +180,37 @@ export async function getEthValueByAccount(c: Context) {
 }
 
 export async function getNetworthTimeSeries(c: Context) {
+  const safeParse = z
+    .object({
+      currency: supportedCurrencySchema.optional().default('ETH'),
+    })
+    .safeParse(c.req.query())
+
+  if (!safeParse.success) {
+    throw new Error('Invalid query parameters')
+  }
+
+  const { currency } = safeParse.data
+
   const networth = await db
     .selectFrom('networth')
     .selectAll()
-    .limit(60)
+    .limit(50)
     .orderBy('timestamp', 'desc')
     .execute()
 
-  return c.json(networth.reverse())
+  // Get the price of {currency} at each timestamp
+  // Idk if this is using multicall because within `getRateToEth` we create a new client every call
+  const rates = await Promise.all(
+    networth.map((n) => getFiatRateToEth(currency, n.timestamp))
+  )
+
+  const networthWithFiat = networth.map((n, i) => ({
+    ...n,
+    value: n.ethValue / (rates[i] ?? 1),
+  }))
+
+  return c.json(networthWithFiat.reverse())
 }
 
 export async function getOffchainBalances(c: Context) {

@@ -116,13 +116,12 @@ export function useNetworthTimeSeries() {
   return useQuery({
     queryKey: ['networthTimeSeries', currency, fiat],
     queryFn: async () => {
-      const res = await honoClient.balances.networth.$get()
-      const json = await res.json()
-
-      return json.map((item) => ({
-        ...item,
-        value: item.ethValue / (fiat?.getRate(currency) ?? 1),
-      }))
+      const res = await honoClient.balances.networth.$get({
+        query: {
+          currency,
+        },
+      })
+      return res.json()
     },
   })
 }

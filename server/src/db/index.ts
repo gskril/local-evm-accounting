@@ -46,7 +46,7 @@ interface BalanceRow {
 }
 
 interface NetworthRow {
-  timestamp: ColumnType<Date, never, string>
+  timestamp: ColumnType<string, never, string>
   ethValue: number
 }
 
