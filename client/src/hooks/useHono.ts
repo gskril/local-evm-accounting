@@ -119,10 +119,16 @@ export function useNetworthTimeSeries() {
       const res = await honoClient.balances.networth.$get()
       const json = await res.json()
 
-      return json.map((item) => ({
-        ...item,
-        value: item.ethValue / (fiat?.getRate(currency) ?? 1),
-      }))
+      return json.map((item: { ethValue: number; usdValue?: number | null }) => {
+        if (currency === 'USD' && item.usdValue != null) {
+          return { ...item, value: item.usdValue }
+        }
+
+        return {
+          ...item,
+          value: item.ethValue / (fiat?.getRate(currency) ?? 1),
+        }
+      })
     },
   })
 }
