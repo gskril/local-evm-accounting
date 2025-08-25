@@ -69,8 +69,8 @@ export function Home() {
                 if (currency === 'ETH') return networthTimeSeries.length > 5
                 if (currency === 'USD')
                   return (
-                    networthTimeSeries.filter((p: any) => p.usdValue != null)
-                      .length > 5
+                    networthTimeSeries.filter((p) => p.usdValue != null).length >
+                    5
                   )
                 return false
               })() && 'lg:block'
