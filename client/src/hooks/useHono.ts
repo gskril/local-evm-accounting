@@ -10,6 +10,16 @@ export const SERVER_URL = url.protocol + '//' + url.hostname + ':8579'
 
 export const honoClient: Client = hc(SERVER_URL) as unknown as Client
 
+// Server response shape for networth rows
+type ServerNetworthRow = {
+  timestamp: string
+  ethValue: number
+  usdValue?: number | null
+}
+
+// Networth point used by the chart (includes computed value)
+export type NetworthPoint = ServerNetworthRow & { value: number }
+
 export function useAccounts(type?: 'onchain' | 'offchain') {
   return useQuery({
     queryKey: ['accounts', type],
@@ -113,16 +123,22 @@ export function useNetworthTimeSeries() {
   const { currency } = useCurrency()
   const { data: fiat } = useFiat()
 
-  return useQuery({
+  return useQuery<NetworthPoint[]>({
     queryKey: ['networthTimeSeries', currency, fiat],
     queryFn: async () => {
       const res = await honoClient.balances.networth.$get()
-      const json = await res.json()
+      const json = (await res.json()) as ServerNetworthRow[]
 
-      return json.map((item) => ({
-        ...item,
-        value: item.ethValue / (fiat?.getRate(currency) ?? 1),
-      }))
+      return json.map((item: ServerNetworthRow) => {
+        if (currency === 'USD' && item.usdValue != null) {
+          return { ...item, value: item.usdValue }
+        }
+
+        return {
+          ...item,
+          value: item.ethValue / (fiat?.getRate(currency) ?? 1),
+        }
+      })
     },
   })
 }

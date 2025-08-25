@@ -7,6 +7,7 @@ import { serveStatic } from 'hono/bun'
 import { api } from './api'
 import { db } from './db'
 import { addCheckBalanceTasksToQueue } from './handlers/balances'
+import { getRateToEth } from './price'
 import { erc20Queue } from './queues/workers/erc20'
 import { ethQueue } from './queues/workers/eth'
 
@@ -38,10 +39,26 @@ new Cron('0 */12 * * *', async () => {
     return
   }
 
+  // Compute USD value using USDC's rate to ETH (mainnet)
+  let usdValue: number | null = null
+  try {
+    const usdcRateToEth = await getRateToEth({
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      decimals: 6,
+      chainId: 1,
+    })
+    // ethValue divided by rateToEth yields USD value denominated in USDC (~USD)
+    // If usdcRateToEth is 0 for some reason, avoid divide-by-zero
+    usdValue = usdcRateToEth ? (balances.ethValue ?? 0) / usdcRateToEth : null
+  } catch {
+    usdValue = null
+  }
+
   await db
     .insertInto('networth')
     .values({
       ethValue: balances.ethValue ?? 0,
+      usdValue: usdValue ?? null,
     })
     .execute()
 

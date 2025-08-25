@@ -64,10 +64,16 @@ export function Home() {
           <div
             className={cn(
               'relative hidden w-full',
-              currency === 'ETH' &&
-                !!networthTimeSeries &&
-                networthTimeSeries.length > 5 &&
-                'lg:block'
+              (() => {
+                if (!networthTimeSeries) return false
+                if (currency === 'ETH') return networthTimeSeries.length > 5
+                if (currency === 'USD')
+                  return (
+                    networthTimeSeries.filter((p) => p.usdValue != null).length >
+                    5
+                  )
+                return false
+              })() && 'lg:block'
             )}
           >
             <ChartContainer
